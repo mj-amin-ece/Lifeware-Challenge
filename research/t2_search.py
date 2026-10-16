@@ -2,7 +2,7 @@
 import itertools
 import pathlib
 import sys
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, ROUND_DOWN
 
 import pandas as pd
 from dateutil.relativedelta import relativedelta
@@ -60,7 +60,7 @@ def qx(table, sex, age):
 
 def age_on(birth, day, mode):
     years = relativedelta(day, birth).years
-    if mode == 'last':
+    if mode in ('last', 'nearest6'):
         return years
     # nearest birthday
     nxt = birth + relativedelta(years=years + 1)
@@ -88,7 +88,8 @@ def project(p, opts, years=None):
     g = rate / 12 if opts['growth'] == 'r12' else Decimal(float((1 + rate) ** (Decimal(1) / 12)) - 1)
     v = Decimal(0)
     out = []
-    rnd = (lambda x: r2(x)) if opts['round'] else (lambda x: x)
+    mode = ROUND_DOWN if (opts['era'] and p.PH_APPDT < pd.Timestamp('2007-08-11')) else ROUND_HALF_UP
+    rnd = (lambda x: x.quantize(CENT, mode)) if opts['round'] else (lambda x: x)
     for m in range(months):
         day = begin + relativedelta(months=m)
         if (freq and m % freq == 0) or (freq == 0 and m == 0):
@@ -97,11 +98,23 @@ def project(p, opts, years=None):
             v = rnd(v * (1 + g))
         amc = amc1 if m < inimon and opts['amc'] == 'pot1_initial' else amc2
         age_day = day if opts['age_at'] == 'month' else begin + relativedelta(years=m // 12)
+        if opts['age'] == 'nearest6':
+            age_day = age_day + relativedelta(months=6)
         age = age_on(p.PS_BIRTH, age_day, opts['age'])
+        if opts.get('cobol_age') and p.PH_APPDT < pd.Timestamp('2007-08-11'):
+            if opts['cobol_age'] == 'each_year':
+                age = int(((begin + relativedelta(years=m // 12)) - p.PS_BIRTH).days / 365 + 0.5)
+            else:
+                age = int((begin - p.PS_BIRTH).days / 365 + 0.5) + m // 12
         q = qx(ch.CG_MORTTB, sex, age)
-        sar = {'A': v * Decimal('0.01'), 'B': max(si - v, Decimal(0)), 'C': si}[p.opt]
-        risk = rnd(sar * q * load * smk / 12)
-        v = v - rnd(admin) - rnd(v * amc / 12) - risk
+        for charge in opts['seq']:
+            if charge == 'adm':
+                v -= rnd(admin)
+            elif charge == 'amc':
+                v -= rnd(v * amc / 12)
+            else:
+                sar = {'A': v * Decimal('0.01'), 'B': max(si - v, Decimal(0)), 'C': si}[p.opt]
+                v -= rnd(sar * q * load * smk / 12)
         if opts['order'] == 'charges_first':
             v = rnd(v * (1 + g))
         if (m + 1) % 12 == 0:
@@ -114,14 +127,16 @@ def project(p, opts, years=None):
 
 
 OPTIONS = {
-    'pdate': ['app', 'beg'],
-    'growth': ['r12', 'geo'],
-    'order': ['charges_first', 'growth_first'],
-    'round': [True, False],
+    'pdate': ['app'],
+    'growth': ['r12'],
+    'order': ['charges_first'],
+    'round': [True],
     'entry_round': [True],
-    'amc': ['pot1_initial'],
-    'age_at': ['month', 'year'],
-    'age': ['last', 'nearest'],
+    'amc': ['pot1_initial', 'pot2'],
+    'age_at': ['year'],
+    'age': ['nearest6'],
+    'era': [True],
+    'seq': [('adm', 'amc', 'rsk')],
 }
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ Dates are `datetime.date`, amounts are `decimal.Decimal`. The rules live in one 
 
 - commission.py: t0, commission of the paid premiums
 - schedule.py: t1, next due dates and collection dates
+- projection.py: t2, value at maturity projected in the offer
 - rules.py: what all tasks share (parameter lookups, rounding, business calendar)
 - legacy_loader.py: reads and decodes the export with the data dictionary NRDICT
 """
@@ -12,6 +13,7 @@ import datetime as dt
 from decimal import Decimal
 
 from commission import commission
+from projection import maturity_values
 from rules import load
 from schedule import next_due_dates
 
@@ -28,7 +30,7 @@ def t1_next_due_dates(legacy_dir, extract_date: dt.date) -> dict[tuple[str, int]
 
 def t2_projected_maturity_value(legacy_dir) -> dict[str, Decimal]:
     """{policy_id: maturity_value}"""
-    return {}
+    return maturity_values(load(legacy_dir))
 
 
 def t3_surrender_value(legacy_dir, valuation_dates: list[dt.date]) -> dict[tuple[str, dt.date], Decimal]:
