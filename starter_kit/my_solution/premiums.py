@@ -51,7 +51,7 @@ def premium_bookings(data, market, policies, conversion):
     Parameters:
     - data (LegacyData): Decoded export.
     - market (Market): Prices and exchange rates.
-    - policies (pd.DataFrame): Result of `policy_base`, indexed by policy number.
+    - policies (dict): {policy number: row of `policy_base`}
     - conversion (datetime.date): Day of the system conversion.
 
     Returns:
@@ -63,7 +63,7 @@ def premium_bookings(data, market, policies, conversion):
 
     rows = []
     for item, gross, share, entry in zip(allocated.itertuples(), received, shares, entry_rates):
-        policy = policies.loc[item.PR_POLNR]
+        policy = policies[item.PR_POLNR]
         money_date = item.PR_RCVDT.date()
         initial_end = (policy.PH_BEGDT + relativedelta(months=int(policy.PD_INIMON))).date()
         trade, ask = market.purchase(item.AL_FNDID, money_date)

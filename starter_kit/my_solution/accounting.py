@@ -82,7 +82,8 @@ def all_bookings(data, until):
     - pd.DataFrame: One row per booking, in the columns of BOOKING_COLUMNS.
     """
     market, conversion = Market(data), conversion_date(data).date()
-    policies = policy_base(data).set_index('PH_POLNR', drop=False)
+    # Rows as namedtuples by policy number: much faster to read in the booking loops than pandas rows
+    policies = {policy.PH_POLNR: policy for policy in policy_base(data).itertuples()}
     trades = pd.concat([premium_bookings(data, market, policies, conversion), order_bookings(data)])
     trades = trades.sort_values('trade', kind='stable')
 
@@ -91,7 +92,7 @@ def all_bookings(data, until):
     for policy, rows in trades.groupby('policy', sort=False):
         moves = list(zip(rows.trade, rows.fund, rows.pot, rows.units))
         last_day = min(until, ended[policy] - dt.timedelta(days=1)) if policy in ended else until
-        charges += run.run(policies.loc[policy], moves, last_day)
+        charges += run.run(policies[policy], moves, last_day)
     return pd.concat([trades, pd.DataFrame(charges, columns=BOOKING_COLUMNS)], ignore_index=True)
 
 
