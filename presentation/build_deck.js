@@ -23,6 +23,7 @@ const THEME = {
   },
 };
 const OUT = path.join(__dirname, "NAMA_Neuron_Migration.pptx");
+const ERA_CSV = path.join(__dirname, "..", "Plots", "errors_by_era.csv");
 const LOGO = ["usi_logo.png", "usi_logo.jpg", "usi_logo.jpeg"].map((f) => path.join(__dirname, f)).find((f) => fs.existsSync(f));
 const MEMBERS = "Mohammad Javad Amin  ·  Nava Biglar  ·  Malihe Ghasemian  ·  Emad A";
 
@@ -132,12 +133,11 @@ async function main() {
     { text: "The submission contains no model: every cent can be explained to an auditor." },
   ], { x: 0.75, y: 4.05, w: 8.5, h: 0.8, fontSize: 15, color: C.text1, valign: "middle", margin: 0, isTextBox: true, objectName: "Principle" });
   s.addNotes(
-    "So we used AI as the detective, not as the calculator. " +
-    "First, one loader for all 27 tables: it reads the old data dictionary and decodes every column type by itself. " +
-    "Then, for each task, we wrote the simplest rule the description suggests and compared it with Neuron's numbers. " +
-    "Where it failed, machine learning told us why: a shallow decision tree on the wrong rows, a brute-force search over rounding and date conventions, " +
-    "and for the fund accounting we checked every single booking on its own. " +
-    "Every finding became plain Python with exact decimals. There is no model in the submission, so every cent can be explained."
+    "So we used AI as the detective, not as the calculator. One loader decodes all 27 tables from the old data dictionary. " +
+    "For each task we wrote the simplest rule and compared it with Neuron's numbers. " +
+    "Where it failed, machine learning told us why: a shallow decision tree on the wrong rows, a search over rounding and date conventions, " +
+    "and for the fund accounting a check of every single booking. " +
+    "Every finding became plain Python with exact decimals, so every cent can be explained."
   );
 
   // 4 Findings -----------------------------------------------------------------------------------------------------
@@ -168,15 +168,54 @@ async function main() {
     s.addText(text, { x: 7.3, y, w: 2.1, h: 0.85, fontSize: 13, color: C.text1, valign: "middle", margin: 0, isTextBox: true, objectName: `Extra text ${i + 1}` });
   }
   s.addNotes(
-    "Our biggest discovery: Neuron is really two systems. Before the conversion in August 2007, COBOL truncated every amount, " +
-    "computed the age as days since birth divided by 365, charged the management fee by the day on an actual-over-360 basis, " +
-    "and let due dates drift: a policy starting on the 31st slid to the 30th and then stuck on the 28th. " +
-    "Neuron NG rounds half up, uses the nearest birthday and charges a twelfth of the yearly rate. " +
-    "We also found operational details: the monthly charge run at 1:30 in the morning only sees units traded before that day, " +
-    "each fund buys on its own first price day, and the data has quirks like lowercase currency codes and birth dates such as the 31st of November."
+    "Our biggest discovery: Neuron is really two systems. Until the conversion in August 2007, COBOL truncated every amount, " +
+    "computed the age as days since birth divided by 365, charged the management fee by the day, " +
+    "and let due dates drift from the 31st to the 28th. Neuron NG rounds half up, uses the nearest birthday and charges a twelfth of the yearly rate. " +
+    "We also found operational details: the charge run at 1:30 in the morning only sees units traded before that day, " +
+    "each fund buys on its own first price day, and the data has quirks like lowercase currency codes and impossible birth dates."
   );
 
-  // 5 Results ------------------------------------------------------------------------------------------------------
+  // 5 Era evidence -------------------------------------------------------------------------------------------------
+  s = pres.addSlide({ masterName: "Content", sectionTitle: "Findings" });
+  s.addText("Ignore the two systems and the numbers break", { placeholder: "title" });
+  const era = fs.readFileSync(ERA_CSV, "utf8").trim().split("\n").slice(1).map((line) => line.split(","))
+    .filter((row) => row[1] !== "");
+  const years = era.map((row) => row[0]);
+  s.addChart([
+    { type: pres.charts.AREA, data: [{ name: "COBOL era", labels: years, values: years.map((year) => (+year <= 2007 ? 100 : 0)) }],
+      options: { chartColors: ["E1E6EC"] } },
+    { type: pres.charts.LINE, data: [
+        { name: "t4 statements, NG rules only", labels: years, values: era.map((row) => +row[1]) },
+        { name: "t2 offers, NG rules only", labels: years, values: era.map((row) => +row[2]) },
+        { name: "Our rules", labels: years, values: era.map((row) => +row[3]) },
+      ], options: { chartColors: [THEME.colors.accent1, THEME.colors.accent5, THEME.colors.accent3], lineSize: 2.5, lineDataSymbol: "none" } },
+  ], {
+    x: 0.5, y: 1.2, w: 6.2, h: 3.75, objectName: "Errors per system era",
+    valAxisMinVal: 0, valAxisMaxVal: 100, valAxisMajorUnit: 25, valAxisLabelFormatCode: '0"%"',
+    valAxisLabelColor: THEME.colors.accent4, catAxisLabelColor: THEME.colors.accent4, valAxisLabelFontSize: 11, catAxisLabelFontSize: 11,
+    valAxisLabelFontFace: "+mn-lt", catAxisLabelFontFace: "+mn-lt", catAxisLabelFrequency: 4,
+    valGridLine: { color: "E5E9EF", size: 0.5 }, catGridLine: { style: "none" },
+    showLegend: true, legendPos: "b", legendFontSize: 11, legendFontFace: "+mn-lt", legendColor: THEME.colors.dk2,
+    showValAxisTitle: true, valAxisTitle: "Wrong values per year", valAxisTitleFontSize: 11, valAxisTitleColor: THEME.colors.accent4,
+    valAxisTitleFontFace: "+mn-lt",
+  });
+  const evidence = [
+    ["100 %", "of the offers of the COBOL era are wrong with the Neuron NG rules alone", C.accent1],
+    ["17 %", "of the 2025 statements are still wrong: old errors live on in the balances", C.accent1],
+    ["0 %", "with our era rules, apart from the manual corrections", C.accent3],
+  ];
+  evidence.forEach(([value, label, color], i) => {
+    const y = 1.25 + i * 1.25;
+    s.addText(value, { x: 7.0, y, w: 2.5, h: 0.55, fontSize: 30, bold: true, fontFace: THEME.headFontFace, color, margin: 0, isTextBox: true, objectName: `Era value ${i + 1}` });
+    s.addText(label, { x: 7.0, y: y + 0.55, w: 2.5, h: 0.6, fontSize: 13, color: C.text2, valign: "top", margin: 0, isTextBox: true, objectName: `Era label ${i + 1}` });
+  });
+  s.addNotes(
+    "How do we know this matters? We ran our own code once more, but moved the conversion to 1900, so the Neuron NG rules apply to every year. " +
+    "Then every offer of the COBOL era is wrong, and the statements stay wrong long after 2007, because the old errors live on in the fund balances: " +
+    "still 17 percent in 2025. With our era rules both lines drop to zero."
+  );
+
+  // 6 Results ------------------------------------------------------------------------------------------------------
   pres.addSection({ title: "Results" });
   s = pres.addSlide({ masterName: "Content", sectionTitle: "Results" });
   s.addText("Every remaining miss is a manual correction", { placeholder: "title" });
@@ -205,14 +244,14 @@ async function main() {
     "55 values, including all 38 from the official list and 17 that nobody had listed. All six tasks run in about a minute and a half."
   );
 
-  // 6 Reuse --------------------------------------------------------------------------------------------------------
+  // 7 Reuse --------------------------------------------------------------------------------------------------------
   pres.addSection({ title: "Reuse" });
   s = pres.addSlide({ masterName: "Content", sectionTitle: "Reuse" });
   s.addText("Built for the next migration", { placeholder: "title" });
   const tools = [
     [FaProjectDiagram, "Rule finder", "Any target: a shallow decision tree turns the wrong rows into readable conditions"],
     [FaStream, "Policy timeline", "Every table of one policy on one page, plus its timeline plot"],
-    [FaBook, "Evidence notebooks", "Four notebooks show how each rule was found and checked"],
+    [FaBook, "Evidence notebooks", "Five notebooks: how every rule was found, and the t6 plots"],
   ];
   for (const [i, [Icon, name, text]] of tools.entries()) {
     const x = 0.5 + i * 3.05;
@@ -228,10 +267,10 @@ async function main() {
   ], { x: 0.5, y: 4.2, w: 9.0, h: 0.45, fontSize: 16, color: C.text1, margin: 0, isTextBox: true, objectName: "Next step" });
   s.addNotes(
     "None of the tools is specific to this data. The rule finder works on any target, the policy timeline shows everything about one policy, " +
-    "and four notebooks document how each rule was found. Our next step is to confirm the results on the public leaderboard."
+    "and five notebooks document how each rule was found. Our next step is to confirm the results on the public leaderboard."
   );
 
-  // 7 Closing ------------------------------------------------------------------------------------------------------
+  // 8 Closing ------------------------------------------------------------------------------------------------------
   pres.addSection({ title: "Closing" });
   s = pres.addSlide({ masterName: "Title dark", sectionTitle: "Closing" });
   logoCard(s, pres, C, 0.6, 0.45, 2.6, 1.55);

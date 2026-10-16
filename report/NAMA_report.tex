@@ -346,9 +346,8 @@ evaluation does not score manual corrections, so on the scored rows our rules ar
 
 \subsection{Differences over time per system era}
 What happens if we ignore that Neuron was two systems? Our code takes the day of the system conversion from the data,
-so we ran it on a copy of 600 training policies in which the conversion event is moved to 1900: the same code then
-applies the Neuron NG rules to every year. Figure~\ref{fig:era} shows the share of wrong values per year for both
-versions.
+so we ran it on a copy of the export in which the conversion event is moved to 1900: the same code then applies the
+Neuron NG rules to every year. Figure~\ref{fig:era} compares both versions on all 3,019 training policies.
 
 \begin{figure}[h]
   \centering
@@ -362,9 +361,10 @@ versions.
   \item \textbf{t2}: with the Neuron NG rules all offers of the COBOL era are wrong and all later offers are right:
         a clean step at the conversion.
   \item \textbf{t4}: 97\,\% of the statement rows of the COBOL era are wrong, and the errors fade only slowly after the
-        conversion (38\,\% from 2008), because policies that started under COBOL carry a wrong balance into every later
-        year.
-  \item \textbf{t1}: only policies that start on the 29th to 31st are affected, so the red line jumps in a few years.
+        conversion (34\,\% from 2008, still 17\,\% in 2025), because policies that started under COBOL carry a wrong
+        balance into every later year.
+  \item \textbf{t1}: only policies that start on the 29th to 31st are affected (10\,\% of the due dates of policies
+        started before 2007), so the red line jumps in a few years.
   \item Our rules stay at 0\,\% in both eras; the few points above 0 are manual corrections.
 \end{itemize}
 A sudden step in the share of errors at one date is exactly the kind of picture that points to a hidden rule.
@@ -429,7 +429,7 @@ Phase & Status & Work \\
 4 Fund accounting & {\color{exact}done} & t3 and t4; booking engine checked booking by booking \\
 5 Outliers and speed & {\color{exact}done} & t5 for any target file; fund accounting five times faster \\
 6 Visualisations & {\color{exact}done} & t6: errors per system era, statement waterfall, policy timeline \\
-7 Communication & {\color{exact}done} & five notebooks, this report, a 4-minute presentation \\
+7 Communication & {\color{exact}done} & five notebooks, this report, a 4-minute presentation (8 slides) \\
 \bottomrule
 \end{tabularx}
 \end{center}
