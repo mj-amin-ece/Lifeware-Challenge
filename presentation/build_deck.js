@@ -189,20 +189,20 @@ async function main() {
   });
   const callouts = [
     ["5,024,847", "fund bookings recalculated from scratch: all exact except 3 changed by hand"],
-    ["55", "hand-edited values found in the targets, 17 of them missing from the official list"],
+    ["55", "hand-edited values found automatically (t5): all 38 listed ones and 17 new"],
   ];
   callouts.forEach(([value, label], i) => {
     const x = 0.5 + i * 4.6;
     s.addText(value, { x, y: 2.85, w: 4.4, h: 0.85, fontSize: 44, bold: true, fontFace: THEME.headFontFace, color: i === 1 ? C.accent1 : C.text1, margin: 0, isTextBox: true, objectName: `Callout value ${i + 1}` });
     s.addText(label, { x, y: 3.7, w: 4.2, h: 0.65, fontSize: 15, color: C.text2, valign: "top", margin: 0, isTextBox: true, objectName: `Callout label ${i + 1}` });
   });
-  s.addText("Train set, official scoring  ·  all tasks run in about 3 minutes  ·  maintainability index 70.8", { x: 0.5, y: 4.6, w: 9.0, h: 0.3, fontSize: 11, color: C.accent4, margin: 0, isTextBox: true, objectName: "Results caption" });
+  s.addText("Train set, official scoring  ·  all six tasks run in 1.5 minutes  ·  maintainability index 71.3", { x: 0.5, y: 4.6, w: 9.0, h: 0.3, fontSize: 11, color: C.accent4, margin: 0, isTextBox: true, objectName: "Results caption" });
   s.addNotes(
     "With these rules we reach between 99.7 and 100 percent on every task. " +
     "For surrender values and statements we recalculate the whole fund accounting ourselves, more than five million bookings, " +
     "and every one of them matches Neuron except three that were changed by hand. " +
-    "In fact, every remaining difference is a manual correction: 55 values with round-franc differences, and 17 of them are not even in the official list. " +
-    "The whole solution runs in about three minutes."
+    "In fact, every remaining difference is a manual correction, and our outlier detection for task five finds them automatically: " +
+    "55 values, including all 38 from the official list and 17 that nobody had listed. All six tasks run in about a minute and a half."
   );
 
   // 6 Reuse --------------------------------------------------------------------------------------------------------
@@ -224,11 +224,11 @@ async function main() {
   }
   s.addText([
     { text: "Next: ", options: { bold: true, color: C.accent1 } },
-    { text: "turn the 55 differences into the outlier report of task t5." },
+    { text: "confirm the results on the public leaderboard, then reuse the loop on the next legacy system." },
   ], { x: 0.5, y: 4.2, w: 9.0, h: 0.45, fontSize: 16, color: C.text1, margin: 0, isTextBox: true, objectName: "Next step" });
   s.addNotes(
     "None of the tools is specific to this data. The rule finder works on any target, the policy timeline shows everything about one policy, " +
-    "and four notebooks document how each rule was found. Our next step is to turn the 55 differences into the outlier report for task five."
+    "and four notebooks document how each rule was found. Our next step is to confirm the results on the public leaderboard."
   );
 
   // 7 Closing ------------------------------------------------------------------------------------------------------
