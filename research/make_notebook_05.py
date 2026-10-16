@@ -46,7 +46,7 @@ project_folder = pathlib.Path('../../..').resolve()
 
 targets_dir = project_folder / 'targets'
 
-sample_size = 600
+sample_size = len(pd.read_csv(targets_dir / 't2_projected_maturity_value.csv'))  # all train policies
 
 example_policy, example_year = 'BL10000013', 2021
 """)
@@ -58,8 +58,8 @@ md("""
 
 The code takes the day of the system conversion from the data (the conversion events, type 800). In a copy of the
 data we move these events to 1900, so the same code treats every policy as a Neuron NG policy: half-up rounding, age
-at the nearest birthday, management charge rate / 12 and anchored due dates in every year. Both versions run on the
-same random sample of train policies.
+at the nearest birthday, management charge rate / 12 and anchored due dates in every year. Both versions run on all
+train policies.
 """)
 code("""
 our_rules, chosen = t3_engine_check.sample_data(sample_size)
@@ -69,7 +69,7 @@ events.loc[events.EV_EVTTP == 800, 'EV_EFFDT'] = pd.Timestamp('1900-01-01')
 ng_rules.tables['NREVNT'] = events
 
 conversion = conversion_date(our_rules)
-print('conversion:', conversion.date(), ' policies in the sample:', len(chosen))
+print('conversion:', conversion.date(), ' policies:', len(chosen))
 """)
 code("""
 policies = our_rules.table('NRPOLH').groupby('PH_POLNR')
@@ -108,6 +108,17 @@ for task, (years, flags) in {'t4': (t4_years, t4_wrong), 't2': (t2_years, t2_wro
                         'wrong from 2008 (%)': round(share[share.index >= 2008].mean(), 1), 'wrong values': sum(wrong)})
 pd.DataFrame(summary)
 """)
+md("The shares per year are also saved as a table, for the chart of the presentation.")
+code("""
+ng, ours = 'Neuron NG rules for all years', 'Our rules (COBOL until the conversion)'
+by_year = pd.DataFrame({
+    't4 statements, Neuron NG rules for all years': share_wrong_by_year(t4_years, t4_wrong[ng]),
+    't2 offers, Neuron NG rules for all years': share_wrong_by_year(t2_years, t2_wrong[ng]),
+    'Our rules, t2 and t4': share_wrong_by_year(t2_years + t4_years, t2_wrong[ours] + t4_wrong[ours]),
+}).round(1)
+by_year.to_csv(project_folder / 'Plots' / 'errors_by_era.csv', index_label='year')
+by_year.tail()
+""")
 md("""
 What the picture shows:
 
@@ -118,7 +129,7 @@ What the picture shows:
   year. Only the era rules fix both parts.
 - **t1 due dates**: only policies that start on the 29th to 31st are affected, so the red line jumps in the few years
   with such COBOL policies.
-- The few points of the green line above 0 are the manual corrections of the sample (t5), not rule errors.
+- The few points of the green line above 0 are manual corrections (t5), not rule errors.
 
 This is the kind of picture that points to a hidden rule: a sudden step in the share of errors at one date.
 """)
