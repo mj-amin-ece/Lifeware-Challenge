@@ -1,39 +1,29 @@
-"""Submission stub of the Neuron migration challenge.
+"""Submission of the Neuron migration challenge.
 
 Each function gets the folder `legacy_dir` with the NR*.csv files and returns the calculated values.
-Dates are `datetime.date`, amounts are `decimal.Decimal`. A missing function scores 0 for its task.
-Your code must calculate every value from `legacy_dir`: do not read the target files and do not embed values.
+Dates are `datetime.date`, amounts are `decimal.Decimal`. The rules live in one module per task:
 
-Check your solution locally against the train targets with `python check.py`.
+- commission.py: t0, commission of the paid premiums
+- schedule.py: t1, next due dates and collection dates
+- rules.py: what all tasks share (parameter lookups, rounding, business calendar)
+- legacy_loader.py: reads and decodes the export with the data dictionary NRDICT
 """
-import csv
 import datetime as dt
-import functools
-import pathlib
 from decimal import Decimal
 
-
-@functools.cache
-def table(legacy_dir, name):
-    """All rows of a legacy table as dicts (`;`-separated, see SCHEMA.md)."""
-    with open(pathlib.Path(legacy_dir) / f"{name}.csv", encoding="utf-8") as f:
-        return list(csv.DictReader(f, delimiter=";"))
-
-
-def day(n):
-    """Legacy date CYYMMDD (`1250131` = 2025-01-31, `970630` = 1997-06-30)."""
-    n = int(n)
-    return dt.date(1900 + n // 10000, n // 100 % 100, n % 100)
+from commission import commission
+from rules import load
+from schedule import next_due_dates
 
 
 def t0_commission(legacy_dir) -> dict[tuple[str, int], Decimal]:
     """{(policy_id, due_nr): commission}"""
-    return {}
+    return commission(load(legacy_dir))
 
 
 def t1_next_due_dates(legacy_dir, extract_date: dt.date) -> dict[tuple[str, int], tuple[dt.date, dt.date]]:
     """{(policy_id, n): (due_date, collection_date)} for the due dates after `extract_date`, n = 1, 2, ..."""
-    return {}
+    return next_due_dates(load(legacy_dir), extract_date)
 
 
 def t2_projected_maturity_value(legacy_dir) -> dict[str, Decimal]:
