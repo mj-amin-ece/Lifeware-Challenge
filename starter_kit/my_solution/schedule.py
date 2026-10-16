@@ -1,12 +1,12 @@
 """t1: the premium due dates of the next year, and the days the money is collected."""
 from dateutil.relativedelta import relativedelta
 
-from legacy_loader import valid_on
 from business_calendar import next_business_day
+from legacy_loader import valid_on
+from rules import conversion_date
 
 # Months between two due dates, per premium frequency (single premiums 'E' have no schedule)
 FREQUENCY_MONTHS = {'M': 1, 'Q': 3, 'H': 6, 'J': 12}
-SYSTEM_CONVERSION = 800
 
 
 def due_dates(begin, end, months, conversion, until):
@@ -66,8 +66,7 @@ def next_due_dates(data, extract_date):
     - dict: {(policy number, n): (due date, collection date)} with n = 1, 2, ... after the extract date.
     """
     until = extract_date + relativedelta(years=1)
-    events = data.table('NREVNT')
-    conversion = events[events.EV_EVTTP == SYSTEM_CONVERSION].EV_EFFDT.min().date()
+    conversion = conversion_date(data).date()
 
     # Policy version valid on the extract date: in force (state 10) and paying regular premiums
     policies = valid_on(data.table('NRPOLH'), 'PH', extract_date, ['PH_POLNR'])

@@ -9,12 +9,12 @@ export, and write them as clear, deterministic Python code.
 |---|---|---|
 | t0 Commission | 99.996 % | the 10 misses are manual corrections (not scored officially) |
 | t1 Next due dates | 100 % | |
-| t2 Projected maturity value | - | next |
-| t3 Surrender value | - | |
+| t2 Projected maturity value | 99.735 % | all 3,019 yearly diagnostics exact; the 8 misses are manual corrections |
+| t3 Surrender value | - | next |
 | t4 Annual statement | - | |
-| t5 Outliers | - | the 10 t0 corrections are already known |
+| t5 Outliers | - | already known: 10 t0 and 8 t2 corrections |
 
-Maintainability index (radon): about 72.
+Maintainability index (radon): 71.
 
 ## Approach
 
@@ -76,6 +76,17 @@ every day with fund prices from 1993 to 2026 exactly.
 - no due date on or after maturity; direct debits (`LS`) are collected on the next business day, bank transfers
   (`UB`) on the due date.
 
+**t2 Projected maturity value** (`projection.py`, `risk.py`):
+- the offer uses the policy as applied for and the parameters valid on the **application date** (growth rate
+  `NRILLU`, charges `NRCHRG`, entry charge `NRENTC`); no agreements;
+- every month: premium less entry charge -> admin fee -> management charge (base pot rate, on the value left) ->
+  risk charge (on the value left) -> growth by rate / 12;
+- risk charge = sum at risk x qx x (1 + loading) x smoker factor / 12; sum at risk by death benefit option (A: 1 % of
+  the value, B: sum insured - value, C: sum insured); the age is fixed per policy year;
+- Neuron NG: age at the nearest birthday, amounts rounded half up;
+- COBOL offers (applied for before 2007-08-11): age = round(days since birth / 365) (leap days ignored), amounts
+  truncated to the cent.
+
 **Seen in the data for the later tasks** (not implemented yet):
 - t3: premiums of the first `PD_INIMON` months buy pot 1 units, later ones pot 2;
 - t4: the entry charge rate is the one valid on the premium's trade date; the admin fee the one valid on the
@@ -86,8 +97,9 @@ every day with fund prices from 1993 to 2026 exactly.
 `starter_kit/my_solution/`:
 
 - `submission.py`: the entry point, one function per task.
-- `commission.py` (t0), `schedule.py` (t1): one module per task.
-- `rules.py`: shared building blocks (loading, date-valid lookups, rounding).
+- `commission.py` (t0), `schedule.py` (t1), `projection.py` (t2): one module per task.
+- `risk.py`: risk charge (sum at risk, entry age, mortality table), shared by t2 and t3.
+- `rules.py`: shared building blocks (loading, date-valid lookups, rounding by system era, conversion date).
 - `business_calendar.py`: business days and holidays.
 - `legacy_loader.py`, `legacy_formats.py`: reading and decoding the export.
 - `tools/rule_finder.py`: finds the conditions under which a rule is wrong (decision tree), plots errors over time.
@@ -95,6 +107,10 @@ every day with fund prices from 1993 to 2026 exactly.
   (`python tools/policy_timeline.py BL10000013`).
 - `notebooks/01_Data_Exploration.ipynb`: Data Processing, and a walk-through of policy `BL10000013`.
 - `notebooks/02_Task_Rules_t0_t1.ipynb`: how the rules of t0 and t1 were found, with the evidence.
+- `notebooks/03_Task_Rules_t2.ipynb`: how the projection rules were found (real risk bookings, convention search,
+  rule finder, COBOL age).
+
+`research/`: exploration scripts (the t2 convention search) and the notebook builders.
 
 `starter_kit/check.py`, `starter_kit/scoring.py`: local scoring from the organisers. `SCHEMA.md`: description of
 the export.
