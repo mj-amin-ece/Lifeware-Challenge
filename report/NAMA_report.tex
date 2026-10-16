@@ -1,0 +1,414 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{newtxtext,newtxmath}   % Times New Roman, like the slides
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+
+\definecolor{ink}{HTML}{16212E}
+\definecolor{swissred}{HTML}{D52B1E}
+\definecolor{exact}{HTML}{1F8A70}
+\definecolor{light}{HTML}{EEF2F6}
+
+\titleformat{\section}{\Large\bfseries\color{ink}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\large\bfseries\color{ink}}{\thesubsection}{0.8em}{}
+\setlist{itemsep=2pt,topsep=4pt}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+% ---------------------------------------------------------------------------------------------------------------------
+\begin{titlepage}
+  \centering
+  \IfFileExists{../presentation/usi_logo.png}{\includegraphics[width=6cm]{../presentation/usi_logo.png}\par\vspace{1.5cm}}{\vspace*{2cm}}
+  {\color{swissred}\large\bfseries TEAM NAMA\par}
+  \vspace{0.8cm}
+  {\Huge\bfseries\color{ink} The Neuron Migration\par}
+  \vspace{0.4cm}
+  {\Large Reverse-engineering 30 years of insurance logic\\ into code an auditor can check\par}
+  \vspace{1.2cm}
+  {\large Project report\\[2pt] Lifeware Challenge, Neural Wave AI Hackathon\par}
+  \vfill
+  {\large Mohammad Javad Amin \quad Nava Biglar \quad Malihe Ghasemian \quad Emad A\par}
+  \vspace{0.4cm}
+  {Università della Svizzera italiana (USI), Lugano\par}
+  \vspace{0.2cm}
+  {October 2026\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ---------------------------------------------------------------------------------------------------------------------
+\section{Our idea in one page}
+
+The insurer NeuralWave Life must move its policies from its old system \emph{Neuron} to Lifeware. The new system has
+to calculate \emph{exactly} the same values as Neuron, to the cent and to the day, but nobody knows how Neuron
+calculates them: there is no source code, and the documentation is incomplete. We only have Neuron's data and the
+values it calculated for part of the policies.
+
+\paragraph{Our idea: AI is the detective, code is the answer.}
+A model that \emph{predicts} a surrender value would never be exact, and an auditor cannot check it. So we never put
+a model into the solution. Instead we use the data and machine learning to \emph{find} Neuron's rules, and we write
+every rule as short, plain Python with exact decimal numbers. We repeat the same loop for every value Neuron
+calculates:
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.55cm, box/.style={draw=ink, fill=light, rounded corners=3pt, minimum height=1.25cm,
+                    text width=2.75cm, align=center, font=\small}, >={Stealth[length=2.5mm]}]
+  \node[box] (decode) {\textbf{1 Decode}\\ read every table with one generic loader};
+  \node[box, right=of decode] (guess) {\textbf{2 Guess}\\ write the simplest rule from the task text};
+  \node[box, right=of guess, fill=swissred!12, draw=swissred] (explain) {\textbf{3 Explain the misses}\\ rule finder, search, booking checks};
+  \node[box, right=of explain] (encode) {\textbf{4 Encode}\\ plain Python with exact decimals};
+  \draw[->, thick, ink] (decode) -- (guess);
+  \draw[->, thick, ink] (guess) -- (explain);
+  \draw[->, thick, ink] (explain) -- (encode);
+  \draw[->, thick, swissred] (encode.south) to[bend left=18] node[below, font=\small, text=swissred] {compare with Neuron again, until only manual corrections are left} (guess.south);
+\end{tikzpicture}
+\end{center}
+
+\paragraph{What came out of it.}
+\begin{itemize}
+  \item Every task reaches between 99.7\,\% and 100\,\% exact rows on the training policies, and \textbf{every
+        remaining difference is a value that was changed by hand}.
+  \item For the surrender values and the annual statements we recalculate the complete fund accounting ourselves:
+        \textbf{5,024,847 bookings}, all identical to Neuron's except 3 that were corrected by hand.
+  \item We found \textbf{55 hand-edited values}; 17 of them are not in the official list of manual corrections.
+  \item The biggest discovery: Neuron is really \textbf{two systems}. The old COBOL system (until August 2007)
+        rounds, counts ages and charges fees differently from the newer Java system, Neuron NG.
+  \item All five tasks run in about three minutes, and the tools we built work for any other target.
+\end{itemize}
+
+% ---------------------------------------------------------------------------------------------------------------------
+\section{The problem}
+
+\subsection{The story}
+NeuralWave Life is a (fictional) life insurer in Ticino. Since 1994 it has sold \emph{unit-linked} policies: the
+customer's premiums buy units of investment funds, and the policy is worth the value of these units. For more than
+30 years the system Neuron calculated every premium, fee, fund unit and payout. Neuron started in COBOL, was partly
+rewritten in Java, was patched many times, and sometimes people corrected values by hand. Before Lifeware can take
+over, it must reproduce Neuron's numbers exactly.
+
+\subsection{What we were given}
+\begin{itemize}
+  \item \textbf{The export} (\code{legacy/}): 27 tables in old formats, for example 4,011 policies with their history,
+        323,441 premium items, 872,039 business events, 6,797,112 fund unit bookings, fund prices, exchange rates and
+        mortality tables.
+  \item \textbf{The targets} (\code{targets/}): the values Neuron calculated for the 3,019 training policies, plus
+        some diagnostic files (yearly projections, single bookings, fund holdings).
+  \item A partial description of the tables (\code{SCHEMA.md}) and the task text.
+\end{itemize}
+The remaining policies are scored on a public leaderboard and on a private set we never see, so a solution can only
+win by finding the real rules.
+
+\subsection{The tasks}
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+Task & What Neuron calculates \\
+\midrule
+t0 Commission & the commission a broker earns on every premium the customer paid \\
+t1 Next due dates & the premium due dates of the next year and the days the money is collected \\
+t2 Projected maturity value & the value at maturity shown in the offer the customer signed \\
+t3 Surrender value & the full fund accounting, and what the customer gets on surrender \\
+t4 Annual statement & the yearly overview of premiums and all costs \\
+t5 Outliers (bonus) & the values that were changed by hand \\
+t6 Visualisation (bonus) & the tools and pictures that helped to find the rules \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{The rules of the game}
+\begin{itemize}
+  \item A value counts only if it is \textbf{exact}: an amount to the cent, a date to the day, all six columns of a
+        statement row.
+  \item The code must calculate everything from the export; it must not read the targets (except for t5).
+  \item The \textbf{maintainability} of the code is measured (radon maintainability index), and approaches that
+        \textbf{generalise} to new targets earn extra points.
+\end{itemize}
+
+% ---------------------------------------------------------------------------------------------------------------------
+\section{Step 1: understanding the data}
+
+\subsection{One loader for every table}
+The export uses old formats: blank-padded text, numbers without a decimal point, and dates such as \code{1250131}
+for 31 January 2025 (\code{CYYMMDD}, where C counts centuries from 1900). The data dictionary \code{NRDICT} gives the
+type and the number of decimals of every column, even of its own columns. So instead of writing a reader per table,
+we wrote \textbf{one generic decoder} driven by the dictionary:
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+Type & Raw value & Decoded \\
+\midrule
+C text & \code{'BL10000001\ \ '} & \code{'BL10000001'} (blanks trimmed) \\
+N(s) number & \code{18500} with s = 2 & 185.00 (s implied decimals) \\
+D date & \code{1250131}, \code{970630} & 2025-01-31, 1997-06-30; \code{0} = no date, \code{9999999} = open end \\
+T timestamp & \code{20070131154415} & 2007-01-31 15:44:15 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The decoded tables are cached, so the 400\,MB booking table loads in a fraction of a second during exploration.
+Amounts are converted back to exact decimals before any calculation.
+
+\subsection{Problems in the data}
+Decoding every column with the dictionary already showed what a real migration team would meet:
+\begin{itemize}
+  \item 10 \textbf{impossible birth dates} such as 31 November 1954; the old system never checked dates.
+  \item The code list \code{NRCODE} has one text column fewer than its header, so the English texts sit in the
+        German column.
+  \item The smoker flag is \code{J/N} (German \emph{Ja}), not \code{Y/N} as documented.
+  \item 80 exchange rates are stored with \textbf{lowercase currency codes} (\code{eur}, \code{usd}, \ldots); they fill
+        days without an uppercase rate and must be read as uppercase.
+\end{itemize}
+
+\subsection{Following one policy}
+Before solving anything we followed one policy (\code{BL10000013}) through all tables: its versions, premiums,
+events, bookings and targets. A \emph{policy timeline} tool prints all data of a policy and plots its history. This
+walk-through already showed several rules, for example that the commission is 3\,\% of each paid premium and that the
+first twelve premiums of this product buy ``initial'' units.
+
+% ---------------------------------------------------------------------------------------------------------------------
+\section{Step 2: our method and tools}
+
+\subsection{The rule finder}
+For every task we first write the simplest rule. Then we mark the rows where it differs from Neuron and give them to
+the \textbf{rule finder}: a shallow decision tree that learns which conditions separate the wrong rows from the right
+ones. Its splits are readable, for example ``the policy starts on day 29 or later \emph{and} before 2007''. A split
+like this points directly to the hidden rule. The tool knows nothing about insurance, so it works for any target.
+
+\subsection{Convention search}
+Many details are conventions: is a value rounded half up or cut off, is the growth rate divided by 12 or compounded,
+is the age counted from the last or the nearest birthday, which date decides a parameter? Such questions have few
+possible answers, so we try \textbf{all combinations} and keep the one that reproduces Neuron exactly.
+
+\subsection{Checking each booking on its own (teacher forcing)}
+For the fund accounting every booking depends on all bookings before it, so one small error spoils everything after
+it. To check a formula on its own, we take the holdings before each booking from Neuron's own (diagnostic) numbers.
+Then every booking that differs points to exactly one wrong formula.
+
+\subsection{Comparing exactly}
+A value is right only if it is identical. During the project we found that a ``close enough'' comparison hides
+one-cent errors on large amounts, so all checks compare to the cent with no relative tolerance.
+
+% ---------------------------------------------------------------------------------------------------------------------
+\section{Step 3: the rules, task by task}
+
+\subsection{t0 Commission}
+\begin{itemize}
+  \item Only premium items that were \textbf{paid} earn a commission; premiums returned by the bank, open items and
+        written-off items earn nothing. (The rule finder found this with one split.)
+  \item The broker is the one of the policy version valid on the \textbf{day the money arrived}, so a broker change
+        moves the commission from that day on.
+  \item The rate comes from the commission table by broker tier and premium type (regular or single).
+  \item Commission = received amount $\times$ rate, rounded half up to the cent.
+\end{itemize}
+
+\subsection{t1 Next due dates}
+\begin{itemize}
+  \item \textbf{Business calendar.} Fund prices are published on every business day, so every weekday without a price
+        is a holiday. They are exactly the public holidays of Ticino: eleven fixed days plus Easter Monday, Ascension,
+        Whit Monday and Corpus Christi (Good Friday is a business day). Written as a rule, the calendar also works for
+        2027 and matches 33 years of price dates without a single difference.
+  \item \textbf{Due dates.} The old COBOL system added one month to the \emph{previous} due date, so a policy that
+        started on the 31st drifted to the 30th and then stayed on the 28th forever. Neuron NG adds whole months to a
+        fixed anchor; for converted policies the anchor is the last COBOL due date.
+  \item \textbf{Collection.} A direct debit is collected on the next business day, a bank transfer on the due date.
+\end{itemize}
+
+\subsection{t2 Projected maturity value}
+The offer simulates the policy month by month with the parameters valid on the \textbf{application date}:
+\begin{enumerate}
+  \item add the premium, less the entry charge;
+  \item take the admin fee, then the management charge on what is left, then the risk charge on what is left;
+  \item let the value grow by the illustration rate divided by 12.
+\end{enumerate}
+The risk charge is the sum at risk $\times$ death probability $\times$ (1 + medical loading) $\times$ smoker factor
+$\div$ 12, with the age fixed at the start of each policy year. Two discoveries made the last offers exact:
+\begin{itemize}
+  \item Neuron NG takes the age at the \textbf{nearest birthday} and rounds half up; the COBOL system
+        \textbf{truncated} every amount.
+  \item For the last 21 COBOL offers the person was ``one year too old''. COBOL computed the age as
+        \textbf{days since birth $\div$ 365}, ignoring leap days. Of several possible formulas, only this one raises the
+        age for exactly these 21 offers and for no other.
+\end{itemize}
+
+\subsection{t3 and t4: the fund accounting}
+The new system must calculate the premium and charge bookings itself. Our engine generates every booking from the
+premiums, the parameters and the market data; only the customer orders (switches, withdrawals, surrenders, death
+benefits) are taken from the export, as the task allows.
+
+\paragraph{Premium bookings.}
+\begin{itemize}
+  \item For each fund of the allocation: received amount $\times$ share $\times$ (1 $-$ entry charge). Allocation,
+        broker tier, entry charge and individual agreements are all taken on the money date.
+  \item Premiums received in the first months of the policy (12 or 24, by product) buy initial units (pot 1),
+        later ones base units (pot 2).
+  \item Each fund buys on its \textbf{own first day with a price} after the money date, at the issue price,
+        converted with the exchange rate of the day before. When one fund has no price, only that fund trades later.
+\end{itemize}
+
+\paragraph{Monthly charges.}
+\begin{itemize}
+  \item The charge run at 01:30 sees only the units traded \textbf{before} that day.
+  \item Every fund and pot is valued at the redemption price and rounded to the cent.
+  \item The admin fee and the risk charge are split over the funds in proportion to their value; the largest
+        position takes the rounding difference, and a share of 0.00 creates no booking.
+  \item The management charge is value $\times$ pot rate $\div$ 12; the COBOL system charged by the day,
+        rate $\times$ days $\div$ 360.
+  \item The risk charge uses the value left after the admin fee and the management charge, exactly like the offer.
+  \item Reversed events and technical corrections are ignored, and there are no charges from the day a policy is
+        surrendered or the insured person dies.
+\end{itemize}
+
+\paragraph{Surrender value (t3).}
+The units are valued at the redemption price on or before the valuation date. The penalty depends on the product's
+surrender scale and the completed policy years, and there is no penalty in the waiver periods (financial crisis 2008,
+COVID 2020). The COBOL system cut off the surrender value itself.
+
+\paragraph{Annual statement (t4).}
+The statement adds up the bookings by calendar year: premiums by money date, entry charges (premium share less the
+amount invested) and the monthly charges by trade date.
+
+\subsection{Summary: two systems}
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lLL@{}}
+\toprule
+ & COBOL (until 2007-08-11) & Neuron NG (Java) \\
+\midrule
+Rounding & cut off (truncate) & half up \\
+Age of the insured person & days since birth $\div$ 365, rounded & nearest birthday \\
+Management charge & rate $\times$ days $\div$ 360 & rate $\div$ 12 \\
+Due dates & drift after short months & anchored, no drift \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ---------------------------------------------------------------------------------------------------------------------
+\section{Results}
+
+\subsection{Accuracy}
+Scored with the official scoring on the training policies:
+\begin{center}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Task & Exact rows & Accuracy & Hand-edited & not in NREXCP \\
+\midrule
+t0 Commission & 225,848 / 225,858 & 99.996\,\% & 10 & 4 \\
+t1 Next due dates & 15,028 / 15,028 & {\color{exact}\bfseries 100\,\%} & 0 & 0 \\
+t2 Projected maturity value & 3,011 / 3,019 & 99.735\,\% & 8 & 3 \\
+t3 Surrender value & 6,137 / 6,153 & 99.740\,\% & 16 & 5 \\
+t4 Annual statement & 34,124 / 34,145 & 99.939\,\% & 21 & 5 \\
+\midrule
+Total & & & 55 & 17 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Every row that is still different is a manual correction: the amounts differ by whole francs or follow no rule,
+while everything around them (the yearly projection, the policy value, the other bookings) is exact. The official
+evaluation does not score manual corrections, so on the scored rows our rules are exact.
+
+\subsection{Other measures}
+\begin{itemize}
+  \item \textbf{Fund accounting}: 5,024,847 premium and charge bookings calculated, all identical to Neuron's except
+        three risk bookings of one policy that were corrected by hand.
+  \item \textbf{Runtime}: all five tasks together take about three minutes on the full export.
+  \item \textbf{Maintainability index}: 70.8 (radon, weighted over all files).
+\end{itemize}
+
+% ---------------------------------------------------------------------------------------------------------------------
+\newpage
+\section{Implementation}
+
+The code follows one principle: \emph{one small module per task}, plus shared building blocks.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+File & Content \\
+\midrule
+\code{submission.py} & entry point, one function per task \\
+\code{legacy\_loader.py}, \code{legacy\_formats.py} & reading and decoding the export with the data dictionary \\
+\code{rules.py} & shared rules: date-valid parameter lookups, rounding by system era, conversion date \\
+\code{business\_calendar.py} & business days and Ticino holidays \\
+\code{commission.py} & t0 \\
+\code{schedule.py} & t1 \\
+\code{policies.py}, \code{risk.py}, \code{projection.py} & t2 (risk charge shared with t3) \\
+\code{market.py}, \code{premiums.py}, \code{charges.py}, \code{accounting.py} & the fund accounting \\
+\code{surrender.py}, \code{statement.py} & t3 and t4 \\
+\code{tools/rule\_finder.py} & decision tree that explains where a rule is wrong \\
+\code{tools/policy\_timeline.py} & all data and the timeline of one policy \\
+\code{notebooks/01--04} & data processing and the evidence for every rule \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Amounts are \code{Decimal} throughout, and no date or rate of this export is written into the code (only the last statement year
+2025, which the task defines): the conversion date comes from the conversion events, the extract date from the
+last event, the holidays from rules.
+
+% ---------------------------------------------------------------------------------------------------------------------
+\section{Roadmap}
+
+\subsection{What we did}
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+Phase & Status & Work \\
+\midrule
+1 Understand the data & {\color{exact}done} & generic loader, data quality findings, walk-through of one policy, timeline tool \\
+2 First tasks & {\color{exact}done} & t0 and t1; business calendar; rule finder \\
+3 Offer projection & {\color{exact}done} & t2; convention search; COBOL age \\
+4 Fund accounting & {\color{exact}done} & t3 and t4; booking engine checked booking by booking \\
+5 Communication & {\color{exact}done} & four evidence notebooks, this report, a 4-minute presentation \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{What comes next}
+\begin{enumerate}
+  \item \textbf{t5 Outliers.} Our calculated values are exact except for the hand-edited ones, so the outlier report
+        is the list of keys where the given targets differ from our values. The 55 differences we already know are
+        the test of this function.
+  \item \textbf{Leaderboard.} Submit the solution and confirm the results on the public policies.
+  \item \textbf{Speed.} The premium bookings still look up policy data row by row; precomputing these lookups should
+        cut the runtime noticeably.
+  \item \textbf{Maintainability.} Split the largest modules further (charge run, market data) and keep every function
+        short; the index weighs every file by its size.
+  \item \textbf{Generalisation.} Turn the convention search into a reusable tool next to the rule finder: given a
+        target and candidate conventions, it reports the combination that matches exactly.
+  \item \textbf{Visualisations (t6).} Add plots of the differences over time and per system era, and a waterfall of an
+        annual statement, to the notebooks.
+\end{enumerate}
+
+% ---------------------------------------------------------------------------------------------------------------------
+\section{Conclusion}
+
+Starting from data alone, we rebuilt Neuron's calculations so that every value matches to the cent, except the values
+people changed by hand, which we can now name. The key was to use machine learning and search as tools to
+\emph{find} rules, never to replace them: the result is short, deterministic code that a developer can maintain and
+an auditor can check. The same loop of decoding, guessing, explaining the misses and encoding can be applied to the
+next legacy system.
+
+\appendix
+\section{Reproducing the results}
+\begin{verbatim}
+python3 -m venv .venv
+.venv/bin/pip install -r starter_kit/my_solution/requirements.txt
+cd starter_kit && ../.venv/bin/python check.py
+\end{verbatim}
+The challenge data (\code{legacy/} and \code{targets/}) must be placed next to the repository's README.
+
+\end{document}
