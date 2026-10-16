@@ -1,100 +1,17 @@
 """Loader for the Neuron legacy export (NR*.csv).
 
-Every column is decoded with the data dictionary NRDICT, so the same code reads every table:
-
-- `C` text columns are trimmed (`'BL10000001  '` -> `'BL10000001'`).
-- `N(s)` columns are integers with `s` implied decimals (`N(2)`: `123456` -> 1234.56).
-- `D` columns are dates `CYYMMDD` (`1250131` -> 2025-01-31, `970630` -> 1997-06-30),
-  `0` means no date (NaT) and `9999999` an open end (OPEN_END).
-- `T` columns are timestamps `YYYYMMDDHHMMSS`.
+Every column is decoded with its type from the data dictionary NRDICT (see legacy_formats.py), so the same code
+reads every table. Impossible dates that had to be corrected are recorded in `LegacyData.issues`.
 """
 import json
 import os
 import pathlib
-from decimal import Decimal
 
 import pandas as pd
 
-# Stand-in for the open end date 9999999 (pandas cannot store year 9999)
-OPEN_END = pd.Timestamp('2200-12-31')
-NO_DATE = 0
-OPEN_END_CODE = 9999999
+from legacy_formats import DECODERS, OPEN_END, decode_date, invalid_dates, to_decimal  # noqa: F401
 
 DEFAULT_LEGACY_DIR = pathlib.Path(__file__).resolve().parents[2] / 'legacy'
-
-
-def decode_date(values):
-    """
-    Decode legacy dates CYYMMDD into timestamps.
-
-    Parameters:
-    - values (pd.Series): Raw dates as text, e.g. '1250131' or '970630'.
-
-    Returns:
-    - pd.Series: Timestamps, NaT for 0 or empty, OPEN_END for 9999999.
-    """
-    codes = pd.to_numeric(values, errors='coerce').fillna(NO_DATE).astype('int64')
-    real = (codes != NO_DATE) & (codes != OPEN_END_CODE)
-
-    # CYYMMDD: the century digit C counts from 1900
-    year = 1900 + codes[real] // 10000
-    month = codes[real] // 100 % 100
-    month_start = pd.to_datetime(pd.DataFrame({'year': year, 'month': month, 'day': 1}))
-
-    # COBOL accepted impossible days such as 31 November: clamp them to the last day of the month
-    day = (codes[real] % 100).clip(upper=month_start.dt.days_in_month)
-
-    dates = pd.Series(pd.NaT, index=values.index, dtype='datetime64[ns]')
-    dates[real] = month_start + pd.to_timedelta(day - 1, unit='D')
-    dates[codes == OPEN_END_CODE] = OPEN_END
-    return dates
-
-
-def invalid_dates(values):
-    """
-    Find legacy dates CYYMMDD whose day does not exist in its month (e.g. 541131 = 31 Nov 1954).
-
-    Parameters:
-    - values (pd.Series): Raw dates as text.
-
-    Returns:
-    - pd.Series: The raw values that `decode_date` had to clamp.
-    """
-    codes = pd.to_numeric(values, errors='coerce').fillna(NO_DATE).astype('int64')
-    real = codes[(codes != NO_DATE) & (codes != OPEN_END_CODE)]
-    yyyymmdd = (19000000 + real).astype(str)
-    return values[real.index][pd.to_datetime(yyyymmdd, format='%Y%m%d', errors='coerce').isna()]
-
-
-def decode_number(values, scale):
-    """
-    Decode fixed-point integers with `scale` implied decimals.
-
-    Parameters:
-    - values (pd.Series): Raw integers as text, empty means no value.
-    - scale (int): Number of implied decimals.
-
-    Returns:
-    - pd.Series: Int64 for scale 0, otherwise float64 (exact enough to explore; use `to_decimal` to calculate).
-    """
-    numbers = pd.to_numeric(values.str.strip().replace('', None), errors='coerce')
-    if scale == 0:
-        return numbers.astype('Int64')
-    return numbers / 10 ** scale
-
-
-def to_decimal(value, scale=2):
-    """
-    Convert a decoded float back into an exact Decimal with `scale` decimals.
-
-    Parameters:
-    - value (float): Decoded value, e.g. 1234.56.
-    - scale (int): Number of decimals of the source column.
-
-    Returns:
-    - Decimal: Exact value, e.g. Decimal('1234.56').
-    """
-    return Decimal(round(value * 10 ** scale)).scaleb(-scale)
 
 
 class LegacyData:
@@ -146,16 +63,10 @@ class LegacyData:
         Returns:
         - pd.DataFrame: Decoded table.
         """
-        decoders = {
-            'C': lambda values, scale: values.str.strip(),
-            'N': decode_number,
-            'D': lambda values, scale: decode_date(values),
-            'T': lambda values, scale: pd.to_datetime(values.replace('', None), format='%Y%m%d%H%M%S'),
-        }
         table = pd.DataFrame(index=raw.index)
         for column in raw.columns:
             kind, scale = self.dictionary[(name, column)]
-            table[column] = decoders[kind](raw[column], scale)
+            table[column] = DECODERS[kind](raw[column], scale)
 
             # Keep a record of every impossible date that was clamped
             if kind == 'D':
@@ -191,6 +102,19 @@ class LegacyData:
 
         self.tables[name] = table
         return table
+
+    def exact(self, values):
+        """
+        Convert a decoded number column back into exact Decimals, with the scale NRDICT gives the column.
+
+        Parameters:
+        - values (pd.Series): Decoded column, e.g. `premiums.PR_AMTRC` (its name finds the scale).
+
+        Returns:
+        - list: Decimals, e.g. [Decimal('315.00'), ...].
+        """
+        scale = next(scale for (_, column), (_, scale) in self.dictionary.items() if column == values.name)
+        return [to_decimal(value, scale) for value in values]
 
     def codes(self, domain):
         """

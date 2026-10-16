@@ -3,6 +3,32 @@
 Neural Wave AI Hackathon. Reverse-engineer the calculation rules of the legacy insurance system Neuron from its data
 export, and write them as clear, deterministic Python code.
 
+## Status
+
+| Task | Train accuracy | Notes |
+|---|---|---|
+| t0 Commission | 99.996 % | the 10 misses are manual corrections (not scored officially) |
+| t1 Next due dates | 100 % | |
+| t2 Projected maturity value | - | next |
+| t3 Surrender value | - | |
+| t4 Annual statement | - | |
+| t5 Outliers | - | the 10 t0 corrections are already known |
+
+Maintainability index (radon): about 72.
+
+## Approach
+
+AI is the detective, not the calculator: the submission is plain, deterministic code, and machine learning only
+helps to find the rules. For every task:
+
+1. Write the simplest rule from the task description.
+2. Mark the values where it differs from the target.
+3. Let the **rule finder** (`tools/rule_finder.py`, a shallow decision tree) show which conditions separate the
+   wrong values from the right ones. Its splits are the hidden rules, e.g. "start day > 28 and start before 2007".
+4. Turn the condition into code, check it against the target, repeat.
+
+The rule finder knows nothing about insurance, so it works for any new target.
+
 ## Setup
 
 The challenge data is not in this repository. Put the `legacy/` and `targets/` folders of the challenge next to
@@ -10,18 +36,19 @@ this README, then:
 
 ```
 python3 -m venv .venv
-.venv/bin/pip install -r starter_kit/my_solution/requirements.txt pandas pyarrow matplotlib nbformat nbclient ipykernel
+.venv/bin/pip install -r starter_kit/my_solution/requirements.txt matplotlib scikit-learn nbformat nbclient ipykernel radon
+cd starter_kit && ../.venv/bin/python check.py
 ```
 
 ## Data Processing
 
-`starter_kit/my_solution/legacy_loader.py` reads every table of the export with one generic decoder driven by the
-data dictionary `NRDICT`:
+`legacy_loader.py` reads every table of the export with one generic decoder driven by the data dictionary `NRDICT`
+(the decoders are in `legacy_formats.py`):
 
 - `C` text: trimmed, `N(s)` numbers: `s` implied decimals, `D` dates: `CYYMMDD` (0 = no date, 9999999 = open end),
   `T` timestamps: `YYYYMMDDHHMMSS`.
-- Decoded tables are cached as parquet in `.cache/` (NRBOOK: 12 s -> 0.1 s).
-- `valid_on` picks the valid row of a versioned table on a date (highest version wins).
+- Decoded tables can be cached as parquet in `.cache/` for the tools (NRBOOK: 12 s -> 0.1 s).
+- `valid_on` / `valid_on_date` pick the valid row of a versioned or dated table (highest version wins).
 
 Data quality problems found while decoding:
 
@@ -29,22 +56,45 @@ Data quality problems found while decoding:
 - `NRCODE` rows have one text field, so the English text sits in `CD_TXTDE`.
 - The smoker flag is `J/N`, not `Y/N`.
 
+## Rules found
+
+**Business calendar** (`business_calendar.py`): Monday to Friday without the Ticino holidays (1.1., 6.1., 19.3., 1.5.,
+29.6., 1.8., 15.8., 1.11., 8.12., 25.12., 26.12., Easter Monday, Ascension, Whit Monday, Corpus Christi). It matches
+every day with fund prices from 1993 to 2026 exactly.
+
+**t0 Commission** (`commission.py`):
+- only paid premium items (`PR_STATE = P`) count; returned, open and written-off items earn nothing;
+- the broker is the one of the policy version valid on the money date (`PR_RCVDT`);
+- rate from `NRCOMR` by broker tier and premium type (position 6 of the tariff key);
+- commission = received amount x rate, rounded half up to the cent.
+
+**t1 Next due dates** (`schedule.py`):
+- COBOL (until the system conversion, event 800 on 2007-08-11) added one period to the previous due date, so a
+  day cut by a short month stayed cut (31 -> 30 -> 28 -> 28 ...);
+- Neuron NG adds whole periods to an anchor (the start date, or the last COBOL due date) and cuts the day only in
+  short months;
+- no due date on or after maturity; direct debits (`LS`) are collected on the next business day, bank transfers
+  (`UB`) on the due date.
+
+**Seen in the data for the later tasks** (not implemented yet):
+- t3: premiums of the first `PD_INIMON` months buy pot 1 units, later ones pot 2;
+- t4: the entry charge rate is the one valid on the premium's trade date; the admin fee the one valid on the
+  charge date.
+
 ## Files
 
-- `starter_kit/my_solution/submission.py`: the entry point with one function per task.
-- `starter_kit/my_solution/legacy_loader.py`: loader and decoder of the legacy export.
-- `starter_kit/my_solution/tools/policy_timeline.py`: prints all data of one policy and plots its timeline
+`starter_kit/my_solution/`:
+
+- `submission.py`: the entry point, one function per task.
+- `commission.py` (t0), `schedule.py` (t1): one module per task.
+- `rules.py`: shared building blocks (loading, date-valid lookups, rounding).
+- `business_calendar.py`: business days and holidays.
+- `legacy_loader.py`, `legacy_formats.py`: reading and decoding the export.
+- `tools/rule_finder.py`: finds the conditions under which a rule is wrong (decision tree), plots errors over time.
+- `tools/policy_timeline.py`: prints all data of one policy and plots its timeline
   (`python tools/policy_timeline.py BL10000013`).
-- `starter_kit/my_solution/notebooks/01_Data_Exploration.ipynb`: Data Processing, and a walk-through of policy
-  `BL10000013` with the first rules found.
-- `starter_kit/check.py`, `starter_kit/scoring.py`: local scoring from the organisers.
-- `SCHEMA.md`: description of the export.
+- `notebooks/01_Data_Exploration.ipynb`: Data Processing, and a walk-through of policy `BL10000013`.
+- `notebooks/02_Task_Rules_t0_t1.ipynb`: how the rules of t0 and t1 were found, with the evidence.
 
-## Rules found so far
-
-| Task | Rule |
-|---|---|
-| t0 | Commission = received premium x `NRCOMR` rate of the broker tier; returned and unpaid items are not counted |
-| t1 | Collection on the next business day after the due date |
-| t3 | Premiums of the first `PD_INIMON` months buy pot 1 units, later ones pot 2 |
-| t4 | Entry charge rate taken on the premium's trade date; admin fee valid on the charge date |
+`starter_kit/check.py`, `starter_kit/scoring.py`: local scoring from the organisers. `SCHEMA.md`: description of
+the export.
