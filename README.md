@@ -12,9 +12,9 @@ export, and write them as clear, deterministic Python code.
 | t2 Projected maturity value | 99.735 % | all 3,019 yearly diagnostics exact; the 8 misses are manual corrections |
 | t3 Surrender value | 99.740 % | every premium and charge booking calculated; the 16 misses are manual corrections |
 | t4 Annual statement | 99.939 % | the 21 misses are manual corrections |
-| t5 Outliers | - | next: 10 t0, 8 t2, 16 t3 and 21 t4 corrections already known |
+| t5 Outliers | 55 found | all 38 NREXCP corrections of the train policies plus 17 unlisted ones |
 
-Maintainability index (radon): 70.8. Runtime of all tasks: about 3 minutes.
+Maintainability index (radon): 71.3. Runtime of all six tasks: about 1.5 minutes.
 
 ## Approach
 
@@ -110,7 +110,8 @@ train policies are exact except one manual correction.
 `starter_kit/my_solution/`:
 
 - `submission.py`: the entry point, one function per task.
-- `commission.py` (t0), `schedule.py` (t1), `projection.py` (t2): one module per task.
+- `commission.py` (t0), `schedule.py` (t1), `projection.py` (t2), `surrender.py` (t3), `statement.py` (t4),
+  `outliers.py` (t5): one module per task.
 - `risk.py`: risk charge (sum at risk, entry age, mortality table), shared by t2 and t3.
 - `rules.py`: shared building blocks (loading, date-valid lookups, rounding by system era, conversion date).
 - `business_calendar.py`: business days and holidays.
@@ -125,7 +126,10 @@ train policies are exact except one manual correction.
 - `notebooks/03_Task_Rules_t2.ipynb`: how the projection rules were found (real risk bookings, convention search,
   rule finder, COBOL age).
 
-`research/`: exploration scripts (the t2 convention search) and the notebook builders.
+`research/`: exploration scripts (t2 convention search, t3 calibration and booking checks) and the notebook
+builders.
+
+`presentation/`: the 4-minute deck with speaker notes (`build_deck.js`). `report/`: the LaTeX project report.
 
 `starter_kit/check.py`, `starter_kit/scoring.py`: local scoring from the organisers. `SCHEMA.md`: description of
 the export.

@@ -83,10 +83,11 @@ calculates:
         remaining difference is a value that was changed by hand}.
   \item For the surrender values and the annual statements we recalculate the complete fund accounting ourselves:
         \textbf{5,024,847 bookings}, all identical to Neuron's except 3 that were corrected by hand.
-  \item We found \textbf{55 hand-edited values}; 17 of them are not in the official list of manual corrections.
+  \item Our outlier detection (t5) finds \textbf{55 hand-edited values} automatically: all 38 corrections of the
+        official list for these policies, plus 17 that nobody had listed.
   \item The biggest discovery: Neuron is really \textbf{two systems}. The old COBOL system (until August 2007)
         rounds, counts ages and charges fees differently from the newer Java system, Neuron NG.
-  \item All five tasks run in about three minutes, and the tools we built work for any other target.
+  \item All six tasks run in about one and a half minutes, and the tools we built work for any other target.
 \end{itemize}
 
 % ---------------------------------------------------------------------------------------------------------------------
@@ -253,8 +254,8 @@ benefits) are taken from the export, as the task allows.
 \begin{itemize}
   \item For each fund of the allocation: received amount $\times$ share $\times$ (1 $-$ entry charge). Allocation,
         broker tier, entry charge and individual agreements are all taken on the money date.
-  \item Premiums received in the first months of the policy (12 or 24, by product) buy initial units (pot 1),
-        later ones base units (pot 2).
+  \item Premiums received in the first months of the policy (24 for the Classic, 12 for the Flex product, none
+        for single premiums) buy initial units (pot 1), later ones base units (pot 2).
   \item Each fund buys on its \textbf{own first day with a price} after the money date, at the issue price,
         converted with the exchange rate of the day before. When one fund has no price, only that fund trades later.
 \end{itemize}
@@ -263,8 +264,8 @@ benefits) are taken from the export, as the task allows.
 \begin{itemize}
   \item The charge run at 01:30 sees only the units traded \textbf{before} that day.
   \item Every fund and pot is valued at the redemption price and rounded to the cent.
-  \item The admin fee and the risk charge are split over the funds in proportion to their value; the largest
-        position takes the rounding difference, and a share of 0.00 creates no booking.
+  \item The admin fee (at most the whole value) and the risk charge are split over the funds in proportion to
+        their value; the largest position takes the rounding difference, and a share of 0.00 creates no booking.
   \item The management charge is value $\times$ pot rate $\div$ 12; the COBOL system charged by the day,
         rate $\times$ days $\div$ 360.
   \item The risk charge uses the value left after the admin fee and the management charge, exactly like the offer.
@@ -281,6 +282,14 @@ COVID 2020). The COBOL system cut off the surrender value itself.
 The statement adds up the bookings by calendar year: premiums by money date, entry charges (premium share less the
 amount invested) and the monthly charges by trade date.
 
+\subsection{t5 Outliers}
+Manual corrections follow no rule, and our rules reproduce every other value exactly. So the outlier detection is
+simple and general: \textbf{a target value is a manual correction when it differs from the value our rules
+calculate}. The function reads any target file by its key and value columns, recalculates the task and reports
+every key where the two disagree. On the training targets it reports exactly the 55 values in the table of
+Section~\ref{sec:results}, including all 38 corrections that the official list \code{NREXCP} names for these
+policies. The other 13 entries of \code{NREXCP} belong to public policies, whose targets we do not have.
+
 \subsection{Summary: two systems}
 \begin{center}
 \begin{tabularx}{\textwidth}{@{}lLL@{}}
@@ -296,7 +305,7 @@ Due dates & drift after short months & anchored, no drift \\
 \end{center}
 
 % ---------------------------------------------------------------------------------------------------------------------
-\section{Results}
+\section{Results}\label{sec:results}
 
 \subsection{Accuracy}
 Scored with the official scoring on the training policies:
@@ -324,8 +333,11 @@ evaluation does not score manual corrections, so on the scored rows our rules ar
 \begin{itemize}
   \item \textbf{Fund accounting}: 5,024,847 premium and charge bookings calculated, all identical to Neuron's except
         three risk bookings of one policy that were corrected by hand.
-  \item \textbf{Runtime}: all five tasks together take about three minutes on the full export.
-  \item \textbf{Maintainability index}: 70.8 (radon, weighted over all files).
+  \item \textbf{Outliers (t5)}: 55 reported, every one of them a value that differs from our rules by whole francs
+        or follows no rule; recall on the official list for these policies 38 of 38.
+  \item \textbf{Runtime}: all six tasks together take 1 minute 36 seconds on the full export. Reading the policy
+        rows as plain tuples instead of pandas rows made the fund accounting about five times faster.
+  \item \textbf{Maintainability index}: 71.3 (radon, weighted over all files).
 \end{itemize}
 
 % ---------------------------------------------------------------------------------------------------------------------
@@ -348,6 +360,7 @@ File & Content \\
 \code{policies.py}, \code{risk.py}, \code{projection.py} & t2 (risk charge shared with t3) \\
 \code{market.py}, \code{premiums.py}, \code{charges.py}, \code{accounting.py} & the fund accounting \\
 \code{surrender.py}, \code{statement.py} & t3 and t4 \\
+\code{outliers.py} & t5, for any target file \\
 \code{tools/rule\_finder.py} & decision tree that explains where a rule is wrong \\
 \code{tools/policy\_timeline.py} & all data and the timeline of one policy \\
 \code{notebooks/01--04} & data processing and the evidence for every rule \\
@@ -372,21 +385,18 @@ Phase & Status & Work \\
 2 First tasks & {\color{exact}done} & t0 and t1; business calendar; rule finder \\
 3 Offer projection & {\color{exact}done} & t2; convention search; COBOL age \\
 4 Fund accounting & {\color{exact}done} & t3 and t4; booking engine checked booking by booking \\
-5 Communication & {\color{exact}done} & four evidence notebooks, this report, a 4-minute presentation \\
+5 Outliers and speed & {\color{exact}done} & t5 for any target file; fund accounting five times faster \\
+6 Communication & {\color{exact}done} & four evidence notebooks, this report, a 4-minute presentation \\
 \bottomrule
 \end{tabularx}
 \end{center}
 
 \subsection{What comes next}
 \begin{enumerate}
-  \item \textbf{t5 Outliers.} Our calculated values are exact except for the hand-edited ones, so the outlier report
-        is the list of keys where the given targets differ from our values. The 55 differences we already know are
-        the test of this function.
-  \item \textbf{Leaderboard.} Submit the solution and confirm the results on the public policies.
-  \item \textbf{Speed.} The premium bookings still look up policy data row by row; precomputing these lookups should
-        cut the runtime noticeably.
-  \item \textbf{Maintainability.} Split the largest modules further (charge run, market data) and keep every function
-        short; the index weighs every file by its size.
+  \item \textbf{Leaderboard.} Submit the solution and confirm the results on the public policies. Nothing in the code
+        depends on the training policies, so the same accuracy is expected there.
+  \item \textbf{Maintainability.} Split the modules with the lowest index further (charge run, market data, format
+        decoders) and keep every function short; the index weighs every file by its size.
   \item \textbf{Generalisation.} Turn the convention search into a reusable tool next to the rule finder: given a
         target and candidate conventions, it reports the combination that matches exactly.
   \item \textbf{Visualisations (t6).} Add plots of the differences over time and per system era, and a waterfall of an
