@@ -341,6 +341,47 @@ evaluation does not score manual corrections, so on the scored rows our rules ar
 \end{itemize}
 
 % ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+\section{Visualisations (t6)}
+
+\subsection{Differences over time per system era}
+What happens if we ignore that Neuron was two systems? Our code takes the day of the system conversion from the data,
+so we ran it on a copy of 600 training policies in which the conversion event is moved to 1900: the same code then
+applies the Neuron NG rules to every year. Figure~\ref{fig:era} shows the share of wrong values per year for both
+versions.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{../Plots/errors_by_era.png}
+  \caption{Share of wrong values per year with the Neuron NG rules for all years (red) and with our rules (green).
+           The COBOL era is shaded.}
+  \label{fig:era}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{t2}: with the Neuron NG rules all offers of the COBOL era are wrong and all later offers are right:
+        a clean step at the conversion.
+  \item \textbf{t4}: 97\,\% of the statement rows of the COBOL era are wrong, and the errors fade only slowly after the
+        conversion (38\,\% from 2008), because policies that started under COBOL carry a wrong balance into every later
+        year.
+  \item \textbf{t1}: only policies that start on the 29th to 31st are affected, so the red line jumps in a few years.
+  \item Our rules stay at 0\,\% in both eras; the few points above 0 are manual corrections.
+\end{itemize}
+A sudden step in the share of errors at one date is exactly the kind of picture that points to a hidden rule.
+
+\subsection{Waterfall of an annual statement}
+Figure~\ref{fig:waterfall} adds up the charges of one statement, as our rules calculate it; it is identical to
+Neuron's. In 2021 policy BL10000013 paid 2,835.00 of premiums and 439.47 of charges (15.5\,\%); the management charge
+is the largest part, and the entry charge fell in July 2021 when the rate of the broker's tier went from 4\,\% to
+3\,\%.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\textwidth]{../Plots/statement_waterfall_BL10000013_2021.png}
+  \caption{Charges of the annual statement 2021 of policy BL10000013, added up to the total charges.}
+  \label{fig:waterfall}
+\end{figure}
+
 \newpage
 \section{Implementation}
 
@@ -363,7 +404,8 @@ File & Content \\
 \code{outliers.py} & t5, for any target file \\
 \code{tools/rule\_finder.py} & decision tree that explains where a rule is wrong \\
 \code{tools/policy\_timeline.py} & all data and the timeline of one policy \\
-\code{notebooks/01--04} & data processing and the evidence for every rule \\
+\code{tools/visuals.py} & errors per year and system era, statement waterfall \\
+\code{notebooks/01--05} & data processing, the evidence for every rule, the visualisations \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -386,7 +428,8 @@ Phase & Status & Work \\
 3 Offer projection & {\color{exact}done} & t2; convention search; COBOL age \\
 4 Fund accounting & {\color{exact}done} & t3 and t4; booking engine checked booking by booking \\
 5 Outliers and speed & {\color{exact}done} & t5 for any target file; fund accounting five times faster \\
-6 Communication & {\color{exact}done} & four evidence notebooks, this report, a 4-minute presentation \\
+6 Visualisations & {\color{exact}done} & t6: errors per system era, statement waterfall, policy timeline \\
+7 Communication & {\color{exact}done} & five notebooks, this report, a 4-minute presentation \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -399,8 +442,8 @@ Phase & Status & Work \\
         decoders) and keep every function short; the index weighs every file by its size.
   \item \textbf{Generalisation.} Turn the convention search into a reusable tool next to the rule finder: given a
         target and candidate conventions, it reports the combination that matches exactly.
-  \item \textbf{Visualisations (t6).} Add plots of the differences over time and per system era, and a waterfall of an
-        annual statement, to the notebooks.
+  \item \textbf{More pictures.} A calendar heat map of due and collection dates, and the timeline of one policy with
+        its units and value over time.
 \end{enumerate}
 
 % ---------------------------------------------------------------------------------------------------------------------

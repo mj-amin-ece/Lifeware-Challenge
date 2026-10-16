@@ -18,11 +18,11 @@ POLICY_COLUMNS = {'NRPOLH': 'PH_POLNR', 'NRRISK': 'RK_POLNR', 'NRALLO': 'AL_POLN
                   'NRPREM': 'PR_POLNR', 'NREVNT': 'EV_POLNR', 'NRBOOK': 'BK_POLNR', 'NRHOLD': 'HD_POLNR'}
 
 
-def sample_data(n, seed=1):
-    """LegacyData restricted to n random train policies (the conversion event is kept)."""
+def sample_data(n, seed=1, policies=()):
+    """LegacyData restricted to n random train policies plus `policies` (the conversion event is kept)."""
     data = LegacyData(ROOT / 'legacy', cache_dir=ROOT / '.cache')
     train = pd.read_csv(ROOT / 'targets' / 't2_projected_maturity_value.csv').policy_id
-    chosen = set(train.sample(n, random_state=seed))
+    chosen = set(train.sample(n, random_state=seed)) | set(policies)
     for name, column in POLICY_COLUMNS.items():
         table = data.table(name)
         keep = table[column].isin(chosen)
