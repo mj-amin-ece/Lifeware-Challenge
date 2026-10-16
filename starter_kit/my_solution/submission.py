@@ -9,6 +9,7 @@ Dates are `datetime.date`, amounts are `decimal.Decimal`. The rules live in one 
 - accounting.py (premiums.py, charges.py, market.py): the fund accounting of t3 and t4
 - surrender.py: t3, surrender value
 - statement.py: t4, annual statement
+- outliers.py: t5, values changed by hand
 - rules.py: what all tasks share (parameter lookups, rounding, business calendar)
 - legacy_loader.py: reads and decodes the export with the data dictionary NRDICT
 """
@@ -16,8 +17,9 @@ import datetime as dt
 from decimal import Decimal
 
 from commission import commission
+from outliers import manual_corrections
 from projection import maturity_values
-from rules import load
+from rules import extract_date, load
 from schedule import next_due_dates
 from statement import annual_statements
 from surrender import surrender_values
@@ -55,4 +57,12 @@ def t5_outlier_detection(legacy_dir, targets_dir) -> set[tuple[str, object]]:
     the only function that may read target files. Example keys: ("t2_projected_maturity_value", "BL10000042"),
     ("t4_annual_statement", ("BL10000042", 2021)).
     """
-    return set()
+    data = load(legacy_dir)
+    calculators = {
+        't0_commission': lambda keys: commission(data),
+        't1_next_due_dates': lambda keys: next_due_dates(data, extract_date(data)),
+        't2_projected_maturity_value': lambda keys: maturity_values(data),
+        't3_surrender_value': lambda keys: surrender_values(data, sorted({day for _, day in keys})),
+        't4_annual_statement': lambda keys: annual_statements(data),
+    }
+    return manual_corrections(calculators, targets_dir)

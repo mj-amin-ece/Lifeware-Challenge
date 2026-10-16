@@ -37,6 +37,19 @@ def conversion_date(data):
     return events[events.EV_EVTTP == SYSTEM_CONVERSION].EV_EFFDT.min()
 
 
+def extract_date(data):
+    """
+    Day of the export: the effective date of its last event (2026-06-30).
+
+    Parameters:
+    - data (LegacyData): Decoded export.
+
+    Returns:
+    - datetime.date: Extract date.
+    """
+    return data.table('NREVNT').EV_EFFDT.max().date()
+
+
 def valid_on_date(items, date_column, table, prefix, on, keep_all=False):
     """
     Attach to each item the row of `table` that is valid on the item's own date.

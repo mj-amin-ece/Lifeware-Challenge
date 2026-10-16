@@ -14,7 +14,7 @@ from charges import ChargeRun
 from market import Market
 from policies import policy_base
 from premiums import BOOKING_COLUMNS, premium_bookings
-from rules import conversion_date
+from rules import conversion_date, extract_date
 
 ORDER_TYPES = ['SWO', 'SWI', 'WDR', 'SUR', 'DTH']
 REVERSAL, TECHNICAL_CORRECTION = 900, 990
@@ -106,4 +106,4 @@ def bookings(data):
     Returns:
     - pd.DataFrame: Result of `all_bookings`.
     """
-    return all_bookings(data, data.table('NREVNT').EV_EFFDT.max().date())
+    return all_bookings(data, extract_date(data))
