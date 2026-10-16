@@ -8,3 +8,6 @@ targets/
 __pycache__/
 .ipynb_checkpoints/
 .DS_Store
+
+# Intermediate results of the research scripts
+*.pkl
