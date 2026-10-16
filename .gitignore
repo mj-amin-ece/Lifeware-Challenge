@@ -1,0 +1,10 @@
+# Challenge data (large, not ours to publish)
+legacy/
+targets/
+
+# Local environment and caches
+.venv/
+.cache/
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
