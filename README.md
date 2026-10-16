@@ -10,11 +10,11 @@ export, and write them as clear, deterministic Python code.
 | t0 Commission | 99.996 % | the 10 misses are manual corrections (not scored officially) |
 | t1 Next due dates | 100 % | |
 | t2 Projected maturity value | 99.735 % | all 3,019 yearly diagnostics exact; the 8 misses are manual corrections |
-| t3 Surrender value | - | next |
-| t4 Annual statement | - | |
-| t5 Outliers | - | already known: 10 t0 and 8 t2 corrections |
+| t3 Surrender value | 99.740 % | every premium and charge booking calculated; the 16 misses are manual corrections |
+| t4 Annual statement | 99.939 % | the 21 misses are manual corrections |
+| t5 Outliers | - | next: 10 t0, 8 t2, 16 t3 and 21 t4 corrections already known |
 
-Maintainability index (radon): 71.
+Maintainability index (radon): 70.8. Runtime of all tasks: about 3 minutes.
 
 ## Approach
 
@@ -87,10 +87,23 @@ every day with fund prices from 1993 to 2026 exactly.
 - COBOL offers (applied for before 2007-08-11): age = round(days since birth / 365) (leap days ignored), amounts
   truncated to the cent.
 
-**Seen in the data for the later tasks** (not implemented yet):
-- t3: premiums of the first `PD_INIMON` months buy pot 1 units, later ones pot 2;
-- t4: the entry charge rate is the one valid on the premium's trade date; the admin fee the one valid on the
-  charge date.
+**t3 Surrender value and t4 Annual statement** (`accounting.py`, `premiums.py`, `charges.py`, `market.py`,
+`surrender.py`, `statement.py`): the whole fund accounting is calculated; only customer orders (switches,
+withdrawals, surrenders, death benefits) are taken from `NRBOOK`. All 5,024,847 premium and charge bookings of the
+train policies are exact except one manual correction.
+- Premium (PRM): per fund received x allocation x (1 - entry charge), allocation, broker tier and entry charge
+  (or agreement) on the money date; pot 1 if the money date is within `PD_INIMON` months of the start; units at the
+  ask price of the fund's first price day after the money date, FX of the day before.
+- The monthly charge run (01:30) sees the units traded before the day; positions are valued at bid with the FX of the
+  day and rounded to the cent.
+- Admin fee valid on the day (capped at the value) and risk charge are split by value, the largest position takes the
+  rounding difference, shares of 0.00 get no booking. Management charge per pot (or AMC agreement) / 12; COBOL:
+  x days / 360. The risk charge uses the value after admin fee and management charge.
+- Reversed events (900) and technical corrections (990) are ignored; no charges from the day of surrender or death.
+- Surrender value: positions at bid on or before the valuation date, penalty by surrender scale and completed policy
+  years, none in waiver periods; COBOL truncates value x (1 - rate).
+- Annual statement: premiums by money date; entry charges (premium share - amount invested) and charges by trade date.
+- Data quality: lowercase currency codes in `NRFXRT` fill gaps and are read as uppercase.
 
 ## Files
 
@@ -107,6 +120,8 @@ every day with fund prices from 1993 to 2026 exactly.
   (`python tools/policy_timeline.py BL10000013`).
 - `notebooks/01_Data_Exploration.ipynb`: Data Processing, and a walk-through of policy `BL10000013`.
 - `notebooks/02_Task_Rules_t0_t1.ipynb`: how the rules of t0 and t1 were found, with the evidence.
+- `notebooks/04_Task_Rules_t3_t4.ipynb`: how the fund accounting rules were found (teacher forcing, per-booking
+  checks), with the remaining manual corrections.
 - `notebooks/03_Task_Rules_t2.ipynb`: how the projection rules were found (real risk bookings, convention search,
   rule finder, COBOL age).
 
