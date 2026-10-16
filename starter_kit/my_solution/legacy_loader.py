@@ -103,17 +103,19 @@ class LegacyData:
         self.tables[name] = table
         return table
 
-    def exact(self, values):
+    def exact(self, values, scale=None):
         """
         Convert a decoded number column back into exact Decimals, with the scale NRDICT gives the column.
 
         Parameters:
         - values (pd.Series): Decoded column, e.g. `premiums.PR_AMTRC` (its name finds the scale).
+        - scale (int): Scale of a derived column that is not in NRDICT.
 
         Returns:
         - list: Decimals, e.g. [Decimal('315.00'), ...].
         """
-        scale = next(scale for (_, column), (_, scale) in self.dictionary.items() if column == values.name)
+        if scale is None:
+            scale = next(scale for (_, column), (_, scale) in self.dictionary.items() if column == values.name)
         return [to_decimal(value, scale) for value in values]
 
     def codes(self, domain):

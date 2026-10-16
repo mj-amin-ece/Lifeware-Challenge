@@ -6,6 +6,9 @@ Dates are `datetime.date`, amounts are `decimal.Decimal`. The rules live in one 
 - commission.py: t0, commission of the paid premiums
 - schedule.py: t1, next due dates and collection dates
 - projection.py: t2, value at maturity projected in the offer
+- accounting.py (premiums.py, charges.py, market.py): the fund accounting of t3 and t4
+- surrender.py: t3, surrender value
+- statement.py: t4, annual statement
 - rules.py: what all tasks share (parameter lookups, rounding, business calendar)
 - legacy_loader.py: reads and decodes the export with the data dictionary NRDICT
 """
@@ -16,6 +19,8 @@ from commission import commission
 from projection import maturity_values
 from rules import load
 from schedule import next_due_dates
+from statement import annual_statements
+from surrender import surrender_values
 
 
 def t0_commission(legacy_dir) -> dict[tuple[str, int], Decimal]:
@@ -35,12 +40,12 @@ def t2_projected_maturity_value(legacy_dir) -> dict[str, Decimal]:
 
 def t3_surrender_value(legacy_dir, valuation_dates: list[dt.date]) -> dict[tuple[str, dt.date], Decimal]:
     """{(policy_id, valuation_date): surrender_value}"""
-    return {}
+    return surrender_values(load(legacy_dir), valuation_dates)
 
 
 def t4_annual_statement(legacy_dir) -> dict[tuple[str, int], tuple[Decimal, ...]]:
     """{(policy_id, year): (premiums, entry_charges, admin_fees, management_fees, risk_charges, total_charges)}"""
-    return {}
+    return annual_statements(load(legacy_dir))
 
 
 def t5_outlier_detection(legacy_dir, targets_dir) -> set[tuple[str, object]]:

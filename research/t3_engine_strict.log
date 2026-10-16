@@ -1,0 +1,10 @@
+5042886 bookings of 3019 policies in 96.8s
+_merge     both
+type           
+ADM     1827505
+AMC     1833960
+PRM      407636
+RSK      955746
+exact by type: {'ADM': 1.0, 'AMC': 1.0, 'PRM': 1.0, 'RSK': 1.0}
+             policy type   fund pot       trade  amount  t_amount     units   t_units _merge
+4362326  BL10004387  RSK  N0004   1  2020-12-01    4.47       1.4 -0.026015 -0.008148   both

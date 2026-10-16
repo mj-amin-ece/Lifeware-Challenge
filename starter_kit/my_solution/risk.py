@@ -6,8 +6,6 @@ from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
 
-# Mortality table sex by the sex basis of the tariff key; unisex tariffs (U) use the sex of the person
-TARIFF_SEX = {'M': '1', 'W': '2'}
 SMOKER = 'J'
 
 
