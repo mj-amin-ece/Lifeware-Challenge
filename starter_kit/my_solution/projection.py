@@ -13,13 +13,14 @@ age from the days since birth / 365; Neuron NG rounds half up and takes the age 
 """
 from decimal import Decimal
 
-from risk import SMOKER, TARIFF_SEX, entry_age, mortality_table, sum_at_risk
+from policies import policy_base
+from risk import SMOKER, entry_age, mortality_table, sum_at_risk
 from rules import conversion_date, money, valid_on_date
 
 # Months between two premiums; a single premium (E) is paid once, at the start
 PREMIUM_MONTHS = {'M': 1, 'Q': 3, 'H': 6, 'J': 12, 'E': None}
-# Columns with amounts and rates that are calculated as exact Decimals
-EXACT_COLUMNS = ['PH_PREMI', 'RK_SUMIN', 'RK_LOAD', 'IL_RATE', 'CG_ADMFEE', 'CG_AMCP2', 'CG_SMKFAC', 'EC_RATE']
+# Parameters that are calculated as exact Decimals
+EXACT_COLUMNS = ['IL_RATE', 'CG_ADMFEE', 'CG_AMCP2', 'CG_SMKFAC', 'EC_RATE']
 
 
 def offer_terms(data):
@@ -32,18 +33,7 @@ def offer_terms(data):
     Returns:
     - pd.DataFrame: One row per policy.
     """
-    policies = data.table('NRPOLH').sort_values('PH_VRSNR').drop_duplicates('PH_POLNR')
-    policies = policies.merge(data.table('NRRISK').query('RK_RSKNR == 1'), left_on='PH_POLNR', right_on='RK_POLNR')
-    policies = policies.merge(data.table('NRPERS'), left_on='RK_PERNR', right_on='PS_PERNR')
-    policies = policies.merge(data.table('NRBROK'), left_on='PH_BRKNR', right_on='BR_BRKNR')
-
-    # Tariff key: family (1-2), sex basis (3), generation (4-5), death benefit option (7)
-    policies['TARFAM'] = policies.RK_TARKEY.str[:2]
-    policies['TARGEN'] = policies.RK_TARKEY.str[3:5]
-    policies['OPTION'] = policies.RK_TARKEY.str[6]
-    policies['SEX'] = policies.RK_TARKEY.str[2].map(TARIFF_SEX).fillna(policies.PS_SEX)
-
-    # Growth rate, charges and entry charge valid on the application date
+    policies = policy_base(data)
     policies = valid_on_date(policies, 'PH_APPDT', data.table('NRILLU'), 'IL', {})
     policies = valid_on_date(policies, 'PH_APPDT', data.table('NRCHRG'), 'CG',
                              {'TARFAM': 'CG_TARFAM', 'TARGEN': 'CG_TARGEN'})
