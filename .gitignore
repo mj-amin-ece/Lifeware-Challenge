@@ -20,3 +20,6 @@ report/*.out
 report/*.fls
 report/*.fdb_latexmk
 presentation/preview/
+
+# Office lock files
+~$*
