@@ -117,10 +117,13 @@ train policies are exact except one manual correction.
 - `business_calendar.py`: business days and holidays.
 - `legacy_loader.py`, `legacy_formats.py`: reading and decoding the export.
 - `tools/rule_finder.py`: finds the conditions under which a rule is wrong (decision tree), plots errors over time.
+- `tools/visuals.py` (t6): share of wrong values per year and system era, waterfall of an annual statement.
 - `tools/policy_timeline.py`: prints all data of one policy and plots its timeline
   (`python tools/policy_timeline.py BL10000013`).
 - `notebooks/01_Data_Exploration.ipynb`: Data Processing, and a walk-through of policy `BL10000013`.
 - `notebooks/02_Task_Rules_t0_t1.ipynb`: how the rules of t0 and t1 were found, with the evidence.
+- `notebooks/05_Visualizations.ipynb` (t6): what happens with the Neuron NG rules for all years, and a statement
+  waterfall; the figures are in `Plots/`.
 - `notebooks/04_Task_Rules_t3_t4.ipynb`: how the fund accounting rules were found (teacher forcing, per-booking
   checks), with the remaining manual corrections.
 - `notebooks/03_Task_Rules_t2.ipynb`: how the projection rules were found (real risk bookings, convention search,
