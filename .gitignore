@@ -11,3 +11,12 @@ __pycache__/
 
 # Intermediate results of the research scripts
 *.pkl
+
+# LaTeX build files and slide previews
+report/*.aux
+report/*.log
+report/*.toc
+report/*.out
+report/*.fls
+report/*.fdb_latexmk
+presentation/preview/
