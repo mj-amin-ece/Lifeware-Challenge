@@ -10,6 +10,9 @@ cases are reused. Scores so far: payout 1/20 and annual 15/20 for H0, H1 and H2+
 - **Amounts are mostly right.** The annual rows hold the same withheld amounts as the payout rows (VST, SOS, KST,
   SOL, KIS) plus the Italian duty, and they score 15/20. The German example pins the FX conventions uniquely; the
   Italian example pins the duty; the bookings pin the net-of-penalty amount and the partial collection of the duty.
+- **The Swiss base is the whole payout, for every contract type.** Swiss law taxes single-premium contracts on
+  the gain, but Neuron withheld on all 163 loss-making payouts above the threshold (36 of them single premium), so
+  the base is the payout; the gain model is ruled out.
 - **The fields only the payout row has are the remittance date and the duty collected.** The collection logic
   matches every booking, so the Swiss and Italian remittance dates are the prime suspects for the taxed rows. Only the
   German date (10th of the next month) is confirmed. Neuron's tax job ran on the 10th of every month, Sundays
