@@ -56,6 +56,22 @@ the formula branches by cherry-pick.
 
 So the "faithful law" model is e7-law: our dates, plus the two formulas above.
 
+## Evaluation 46 (uploaded 23:36, e7-payday): the sample changed
+
+Payout 0/40, annual 11/30, on new cases. Nothing is comparable with the 20-case results. Two conclusions hold
+anyway: the 10th-of-the-next-month rule is wrong (it would have passed the 81 % of dated rows paid within the event
+month if it were right), and amounts are wrong on patterns the old annual sample lacked (annual rows have no dates).
+Also checked: for all 46 taxed payouts whose person country differs from the address, the booking follows the
+address, so the country field is right.
+
+Upload at 01:36: **e8-faithful** (= main cf8de28): law dates (CH month end + 30 days, IT 16th, DE 10th) counted from
+the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The most principled model in one slot.
+
+| e8 payout | Reading | Next |
+|---|---|---|
+| > 0 | the law-faithful model passes some rows | morning: ablate the E5 bets (deaths, negative bases) via e6-safe + the e8 changes |
+| 0 | something basic is wrong in every row: the gain basis for partial withdrawals, or the dates again | morning: e6-safe with law dates from the payment day |
+
 ## Slot by slot
 
 | When | Upload | Rule |
