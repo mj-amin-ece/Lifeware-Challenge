@@ -48,8 +48,7 @@ class PayoutBasis(TaxData):
         Returns:
         - Decimal: Taxable base.
         """
-        exemption, _ = self.rates.rate('DE', 'TFS', day)
-        base = gain * (1 - (exemption or 0))
+        base = gain  # D1 test: the partial exemption (TFS) is not applied at withholding
         terms = self.policies[policy]
         applied = terms.PH_APPDT.date()
         age = HALF_INCOME['later age'] if applied >= HALF_INCOME['later from'] else HALF_INCOME['age']
