@@ -33,6 +33,10 @@ def remittance_date(country, day):
     Returns (datetime.date): Remittance date.
     """
     next_month = day.replace(day=1) + relativedelta(months=1)
-    if country in REMITTANCE_DAY:
-        return next_month.replace(day=REMITTANCE_DAY[country])
-    return next_month - dt.timedelta(days=1) + dt.timedelta(days=CH_REMITTANCE_DAYS)
+    # D4 test, one rule per country: CH end of the next month; IT the next run of the monthly job (the first 10th on
+    # or after the day paid); DE the 10th of the next month, confirmed by the task example
+    if country == 'CH':
+        return next_month + relativedelta(months=1) - dt.timedelta(days=1)
+    if country == 'IT':
+        return day.replace(day=10) if day.day <= 10 else next_month.replace(day=10)
+    return next_month.replace(day=REMITTANCE_DAY['DE'])
