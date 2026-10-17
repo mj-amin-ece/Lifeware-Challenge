@@ -5,7 +5,9 @@
 - CH: withholding tax (VST) on the whole payout in CHF.
 - IT: substitute tax (SOS) on the gain.
 - DE: capital gains tax (KST) on the gain, less the partial exemption (TFS) from 2018 and only half of it (HEV) after
-  12 years and from the age of 60 (62 from 2012); solidarity surcharge (SOL) and church tax (KIS) on the KST.
+  12 years and from the age of 60 (62 from 2012); solidarity surcharge (SOL) and church tax (KIS) on the KST. For a
+  church member the KST is base / (4 + church rate) instead of 25 %: the tax is reduced by a quarter of the church tax
+  on it (section 32d of the German income tax act).
 """
 from payout_basis import HALF_INCOME, PayoutBasis
 from decimal import Decimal
@@ -40,7 +42,8 @@ class Withholding(PayoutBasis):
         if tax not in booked:
             return base, Decimal('0.00'), Decimal('0.00'), {}
         rate, _ = self.rates.rate(country, tax, day, known)
-        withheld = money(base * rate, cobol)
+        church_rate, _ = self.rates.rate(country, 'KIS', day, known, region) if 'KIS' in booked else (None, None)
+        withheld = money(base / (4 + church_rate) if church_rate is not None else base * rate, cobol)
         amounts = {tax: withheld}
         for surcharge in ['SOL', 'KIS']:
             surcharge_rate, _ = self.rates.rate(country, surcharge, day, known, region)
