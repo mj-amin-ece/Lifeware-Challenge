@@ -31,8 +31,8 @@ class TaxModule(Withholding):
             yearly[(day.year, 'BOL')] += amount
         collected = Decimal(0)
         for payout in payouts:
-            event, day, _, _, share = payout
-            address = self.residence.address(policy, day)
+            event, day, known, _, share = payout
+            address = self.residence.address(policy, day, known)
             country = address.AD_CNTRY
             base, withheld, surcharges, amounts = self.withholding(policy, payout, withdrawals, country, address.AD_REGIO)
             stamp = Decimal('0.00')
