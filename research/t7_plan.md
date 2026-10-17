@@ -81,6 +81,22 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## Merged plan, 01:35: the first two slots in one, then splits
+
+Slot 1 (`main`, b946289) now carries the questions of the old slots 1 and 2, because their payout questions touch
+disjoint rows (untaxed rows have no date; taxed rows carry the date): untaxed base 0.00 and law dates counted from
+the event month; amount side: old premiums rounded by the payout's era (40 annual rows) and the German partial
+exemption off (35 rows). A hit is attributed in the next slot by undoing one half.
+
+| Slot | Upload | Payout side | Amount side (annual) |
+|---|---|---|---|
+| 01:51 | `main` | untaxed base 0.00 + law dates from the event month | rounding era + TFS off |
+| 02:51 | d2 | the 10th for every country from the event month | deaths as units |
+| 03:51 | d3-era-split-rappen | **era split**: COBOL rows the 10th, Neuron NG rows each country's law | Swiss 5 Rappen |
+| 04:51 | d4-country-split-dayplus1 | **country split**: CH month end, IT first 10th after payment, DE the 10th | Italian duty day + 1 |
+
+Splits read as: a count above 0 means one of the two halves is right; the next slot runs one half alone.
+
 ## Hourly uploads from 01:00: two questions per slot
 
 e8 scored 0/40 and 11/30, exactly like e7-payday: both date rules from the payment month fail every taxed row, and
