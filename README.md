@@ -3,6 +3,24 @@
 Neural Wave AI Hackathon. Reverse-engineer the calculation rules of the legacy insurance system Neuron from its data
 export, and write them as clear, deterministic Python code.
 
+## Team NAMA
+
+Università della Svizzera italiana (USI), Lugano.
+
+| Name | Role |
+|---|---|
+| Mohammad Javad Amin | |
+| Nava Biglar | |
+| Malihe Ghasemian | |
+| Emad Aghajani | |
+
+## Hand-in
+
+- Code: `starter_kit/my_solution/` (entry point `submission.py`, tasks t0 to t5 and the surprise task t7).
+- Report (2 pages, limit 3): `report/NAMA_report.pdf`; the long version with every rule: `report/NAMA_report_extended.pdf`.
+- Presentation (5 minutes, with speaker notes): `presentation/NAMA_Neuron_Migration.pptx`.
+- Video script (2 minutes): `presentation/video_script.md`.
+
 ## Status
 
 | Task | Train accuracy | Notes |

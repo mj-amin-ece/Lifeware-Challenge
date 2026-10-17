@@ -1,4 +1,4 @@
-// Builds NAMA_Neuron_Migration.pptx: the 4-minute talk of team NAMA, with speaker notes.
+// Builds NAMA_Neuron_Migration.pptx: the 5-minute talk of team NAMA, with speaker notes.
 //
 //   NODE_PATH=<folder with pptxgenjs, react, react-dom, react-icons, sharp> node build_deck.js
 //
@@ -9,7 +9,7 @@ const pptxgen = require("pptxgenjs");
 const React = require("react");
 const { renderToStaticMarkup } = require("react-dom/server");
 const sharp = require("sharp");
-const { FaDatabase, FaLightbulb, FaSearch, FaCode, FaClock, FaChartLine, FaBug, FaProjectDiagram, FaStream, FaBook } = require("react-icons/fa");
+const { FaDatabase, FaLightbulb, FaSearch, FaCode, FaClock, FaChartLine, FaBug, FaProjectDiagram, FaCalendarAlt, FaTags, FaSlidersH, FaCheckDouble } = require("react-icons/fa");
 const { applyTheme } = require(process.env.APPLY_THEME);
 
 const THEME = {
@@ -25,7 +25,7 @@ const THEME = {
 const OUT = path.join(__dirname, "NAMA_Neuron_Migration.pptx");
 const ERA_CSV = path.join(__dirname, "..", "Plots", "errors_by_era.csv");
 const LOGO = ["usi_logo.png", "usi_logo.jpg", "usi_logo.jpeg"].map((f) => path.join(__dirname, f)).find((f) => fs.existsSync(f));
-const MEMBERS = "Mohammad Javad Amin  ·  Nava Biglar  ·  Malihe Ghasemian  ·  Emad A";
+const MEMBERS = "Mohammad Javad Amin  ·  Nava Biglar  ·  Malihe Ghasemian  ·  Emad Aghajani";
 
 async function icon(Icon, color) {
   const svg = renderToStaticMarkup(React.createElement(Icon, { color: "#" + color, size: 256 }));
@@ -81,8 +81,8 @@ async function main() {
   s.addText("TEAM NAMA", { x: 0.6, y: 4.1, w: 4, h: 0.35, fontSize: 14, bold: true, color: C.accent1, charSpacing: 2, margin: 0, isTextBox: true, objectName: "Team name" });
   s.addText(MEMBERS, { x: 0.6, y: 4.45, w: 8.8, h: 0.4, fontSize: 16, color: C.background1, margin: 0, isTextBox: true, objectName: "Members" });
   s.addNotes(
-    "Hello, we are team NAMA from USI: Mohammad Javad Amin, Nava Biglar, Malihe Ghasemian and Emad A. " +
-    "Our challenge was the Neuron migration: rebuilding thirty years of insurance logic as code that an auditor can check."
+    "Hello, we are team NAMA from USI: Mohammad Javad Amin, Nava Biglar, Malihe Ghasemian and Emad Aghajani. " +
+    "Our challenge was the Neuron migration: rebuilding thirty years of insurance logic as code that an auditor can check. We show how we did it, and why the same method also worked on a task without any answers."
   );
 
   // 2 Challenge ----------------------------------------------------------------------------------------------------
@@ -140,7 +140,34 @@ async function main() {
     "Every finding became plain Python with exact decimals, so every cent can be explained."
   );
 
-  // 4 Findings -----------------------------------------------------------------------------------------------------
+  // 4 Toolkit ------------------------------------------------------------------------------------------------------
+  s = pres.addSlide({ masterName: "Content", sectionTitle: "Approach" });
+  s.addText("One loop, six generic tools", { placeholder: "title" });
+  const toolkit = [
+    [FaProjectDiagram, "Rule finder", "Where is a rule wrong? \u2192 drifting due dates before 2007"],
+    [FaChartLine, "Change points", "When did the system change? \u2192 2007-08-11"],
+    [FaSearch, "Residuals", "What do the differences say? \u2192 31/360, cut-off cents"],
+    [FaSlidersH, "Convention search", "Which convention is it? \u2192 Actual/360, charge order"],
+    [FaTags, "Weak labels", "No targets? Learn from the legacy bookings \u2192 t7"],
+    [FaCalendarAlt, "Learned calendar", "Business days from the price days \u2192 Ticino holidays"],
+  ];
+  for (const [i, [Icon, name, text]] of toolkit.entries()) {
+    const x = 0.5 + (i % 3) * 3.05, y = 1.2 + Math.floor(i / 3) * 1.7;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: 2.9, h: 1.55, rectRadius: 0.08, fill: { color: C.background2 }, line: { color: C.background2 }, objectName: `Toolkit card ${i + 1}` });
+    s.addShape(pres.shapes.OVAL, { x: x + 0.2, y: y + 0.2, w: 0.5, h: 0.5, fill: { color: i === 4 ? C.accent1 : C.text1 }, line: { color: i === 4 ? C.accent1 : C.text1 }, objectName: `Toolkit circle ${i + 1}` });
+    s.addImage({ data: await icon(Icon, "FFFFFF"), x: x + 0.32, y: y + 0.32, w: 0.26, h: 0.26, altText: name, objectName: `Toolkit icon ${i + 1}` });
+    s.addText(name, { x: x + 0.85, y: y + 0.22, w: 1.95, h: 0.45, fontSize: 16, bold: true, color: C.text1, valign: "middle", margin: 0, isTextBox: true, objectName: `Toolkit name ${i + 1}` });
+    s.addText(text, { x: x + 0.2, y: y + 0.8, w: 2.55, h: 0.65, fontSize: 13, color: C.text2, valign: "top", margin: 0, isTextBox: true, objectName: `Toolkit text ${i + 1}` });
+  }
+  s.addText("None of them knows anything about insurance: notebook 06 shows each one rediscovering one of our rules.", { x: 0.5, y: 4.67, w: 9.0, h: 0.3, fontSize: 12, italic: true, color: C.text2, margin: 0, isTextBox: true, objectName: "Toolkit caption" });
+  s.addNotes(
+    "What makes this a method and not a one-off is the toolkit. Each tool answers a question that every migration has: " +
+    "where is the rule wrong, on which day did the system change, what do the differences say, which convention is it, " +
+    "and how do we learn when there are no targets. None of them knows anything about insurance. " +
+    "In notebook six each tool rediscovers one of our rules on its own, for example the conversion date in August 2007."
+  );
+
+  // 5 Findings -----------------------------------------------------------------------------------------------------
   pres.addSection({ title: "Findings" });
   s = pres.addSlide({ masterName: "Content", sectionTitle: "Findings" });
   s.addText("Neuron is really two systems", { placeholder: "title" });
@@ -172,10 +199,10 @@ async function main() {
     "computed the age as days since birth divided by 365, charged the management fee by the day, " +
     "and let due dates drift from the 31st to the 28th. Neuron NG rounds half up, uses the nearest birthday and charges a twelfth of the yearly rate. " +
     "We also found operational details: the charge run at 1:30 in the morning only sees units traded before that day, " +
-    "each fund buys on its own first price day, and the data has quirks like lowercase currency codes and impossible birth dates."
+    "and each fund buys on its own first price day."
   );
 
-  // 5 Era evidence -------------------------------------------------------------------------------------------------
+  // 6 Era evidence -------------------------------------------------------------------------------------------------
   s = pres.addSlide({ masterName: "Content", sectionTitle: "Findings" });
   s.addText("Ignore the two systems and the numbers break", { placeholder: "title" });
   const era = fs.readFileSync(ERA_CSV, "utf8").trim().split("\n").slice(1).map((line) => line.split(","))
@@ -215,7 +242,7 @@ async function main() {
     "still 17 percent in 2025. With our era rules both lines drop to zero."
   );
 
-  // 6 Results ------------------------------------------------------------------------------------------------------
+  // 7 Results ------------------------------------------------------------------------------------------------------
   pres.addSection({ title: "Results" });
   s = pres.addSlide({ masterName: "Content", sectionTitle: "Results" });
   s.addText("Every remaining miss is a manual correction", { placeholder: "title" });
@@ -235,42 +262,46 @@ async function main() {
     s.addText(value, { x, y: 2.85, w: 4.4, h: 0.85, fontSize: 44, bold: true, fontFace: THEME.headFontFace, color: i === 1 ? C.accent1 : C.text1, margin: 0, isTextBox: true, objectName: `Callout value ${i + 1}` });
     s.addText(label, { x, y: 3.7, w: 4.2, h: 0.65, fontSize: 15, color: C.text2, valign: "top", margin: 0, isTextBox: true, objectName: `Callout label ${i + 1}` });
   });
-  s.addText("Train set, official scoring  ·  all six tasks run in 1.5 minutes  ·  maintainability index 71.3", { x: 0.5, y: 4.6, w: 9.0, h: 0.3, fontSize: 11, color: C.accent4, margin: 0, isTextBox: true, objectName: "Results caption" });
+  s.addText("Train set, official scoring  ·  t0\u2013t5 run in 1.5 minutes  ·  maintainability index 68", { x: 0.5, y: 4.6, w: 9.0, h: 0.3, fontSize: 11, color: C.accent4, margin: 0, isTextBox: true, objectName: "Results caption" });
   s.addNotes(
     "With these rules we reach between 99.7 and 100 percent on every task. " +
     "For surrender values and statements we recalculate the whole fund accounting ourselves, more than five million bookings, " +
     "and every one of them matches Neuron except three that were changed by hand. " +
     "In fact, every remaining difference is a manual correction, and our outlier detection for task five finds them automatically: " +
-    "55 values, including all 38 from the official list and 17 that nobody had listed. All six tasks run in about a minute and a half."
+    "55 values, including all 38 from the official list and 17 that nobody had listed. Tasks zero to five run in about a minute and a half, with one small module per task."
   );
 
-  // 7 Reuse --------------------------------------------------------------------------------------------------------
-  pres.addSection({ title: "Reuse" });
-  s = pres.addSlide({ masterName: "Content", sectionTitle: "Reuse" });
-  s.addText("Built for the next migration", { placeholder: "title" });
-  const tools = [
-    [FaProjectDiagram, "Rule finder", "Any target: a shallow decision tree turns the wrong rows into readable conditions"],
-    [FaStream, "Policy timeline", "Every table of one policy on one page, plus its timeline plot"],
-    [FaBook, "Evidence notebooks", "Five notebooks: how every rule was found, and the t6 plots"],
+  // 8 t7 -----------------------------------------------------------------------------------------------------------
+  pres.addSection({ title: "Surprise t7" });
+  s = pres.addSlide({ masterName: "Content", sectionTitle: "Surprise t7" });
+  s.addText("Surprise t7: the tax audit, without targets", { placeholder: "title" });
+  const evidence7 = [
+    [FaTags, "Weak labels", "Neuron's tax bookings say which tax applied; our rules must book the same ones"],
+    [FaSlidersH, "Task examples", "A convention search finds the only rules that give 5,628.16 and 616.11"],
+    [FaCheckDouble, "Consistency", "Every tax Neuron booked must get an amount"],
   ];
-  for (const [i, [Icon, name, text]] of tools.entries()) {
-    const x = 0.5 + i * 3.05;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.3, w: 2.9, h: 2.55, rectRadius: 0.08, fill: { color: C.background2 }, line: { color: C.background2 }, objectName: `Tool card ${i + 1}` });
-    s.addShape(pres.shapes.OVAL, { x: x + 0.25, y: 1.55, w: 0.7, h: 0.7, fill: { color: C.text1 }, line: { color: C.text1 }, objectName: `Tool circle ${i + 1}` });
-    s.addImage({ data: await icon(Icon, "FFFFFF"), x: x + 0.42, y: 1.72, w: 0.36, h: 0.36, altText: name, objectName: `Tool icon ${i + 1}` });
-    s.addText(name, { x: x + 0.25, y: 2.45, w: 2.45, h: 0.4, fontSize: 17, bold: true, color: C.text1, margin: 0, isTextBox: true, objectName: `Tool name ${i + 1}` });
-    s.addText(text, { x: x + 0.25, y: 2.9, w: 2.45, h: 0.85, fontSize: 14, color: C.text2, valign: "top", margin: 0, isTextBox: true, objectName: `Tool text ${i + 1}` });
+  for (const [i, [Icon, name, text]] of evidence7.entries()) {
+    const y = 1.25 + i * 1.15;
+    s.addShape(pres.shapes.OVAL, { x: 0.5, y, w: 0.6, h: 0.6, fill: { color: C.accent1 }, line: { color: C.accent1 }, objectName: `t7 circle ${i + 1}` });
+    s.addImage({ data: await icon(Icon, "FFFFFF"), x: 0.65, y: y + 0.15, w: 0.3, h: 0.3, altText: name, objectName: `t7 icon ${i + 1}` });
+    s.addText(name, { x: 1.3, y: y - 0.02, w: 3.9, h: 0.35, fontSize: 16, bold: true, color: C.text1, margin: 0, isTextBox: true, objectName: `t7 name ${i + 1}` });
+    s.addText(text, { x: 1.3, y: y + 0.33, w: 3.9, h: 0.6, fontSize: 13, color: C.text2, valign: "top", margin: 0, isTextBox: true, objectName: `t7 text ${i + 1}` });
   }
-  s.addText([
-    { text: "Next: ", options: { bold: true, color: C.accent1 } },
-    { text: "confirm the results on the public leaderboard, then reuse the loop on the next legacy system." },
-  ], { x: 0.5, y: 4.2, w: 9.0, h: 0.45, fontSize: 16, color: C.text1, margin: 0, isTextBox: true, objectName: "Next step" });
+  const numbers7 = [["2 of 2", "examples of the task exact to the cent"], ["793 of 793", "taxes booked by Neuron get an amount"], ["99.9 %", "agreement of the Swiss rule with Neuron"]];
+  numbers7.forEach(([value, label], i) => {
+    const y = 1.2 + i * 1.15;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 5.6, y, w: 3.9, h: 1.0, rectRadius: 0.08, fill: { color: C.background2 }, line: { color: C.background2 }, objectName: `t7 card ${i + 1}` });
+    s.addText(value, { x: 5.8, y: y + 0.08, w: 3.5, h: 0.5, fontSize: 26, bold: true, fontFace: THEME.headFontFace, color: C.accent3, margin: 0, isTextBox: true, objectName: `t7 value ${i + 1}` });
+    s.addText(label, { x: 5.8, y: y + 0.58, w: 3.5, h: 0.35, fontSize: 13, color: C.text2, margin: 0, isTextBox: true, objectName: `t7 label ${i + 1}` });
+  });
   s.addNotes(
-    "None of the tools is specific to this data. The rule finder works on any target, the policy timeline shows everything about one policy, " +
-    "and five notebooks document how each rule was found. Our next step is to confirm the results on the public leaderboard."
+    "Then came the surprise: a tax audit, and no target values at all. We kept the same loop and changed the evidence. " +
+    "Neuron's own tax bookings tell us which tax applied to which payout, so they become labels: our Swiss rule, for example, agrees with 99.9 percent of them. " +
+    "The two examples in the task text became anchors: a convention search finds the only combination of rules that reproduces both to the cent. " +
+    "And every one of the 793 taxes Neuron booked gets an amount. The few points we could not confirm without targets are listed in the report."
   );
 
-  // 8 Closing ------------------------------------------------------------------------------------------------------
+  // 9 Closing ------------------------------------------------------------------------------------------------------
   pres.addSection({ title: "Closing" });
   s = pres.addSlide({ masterName: "Title dark", sectionTitle: "Closing" });
   logoCard(s, pres, C, 0.6, 0.45, 2.6, 1.55);
@@ -278,7 +309,10 @@ async function main() {
   s.addText("Questions are welcome", { placeholder: "body" });
   s.addText("TEAM NAMA", { x: 0.6, y: 4.1, w: 4, h: 0.35, fontSize: 14, bold: true, color: C.accent1, charSpacing: 2, margin: 0, isTextBox: true, objectName: "Team name" });
   s.addText(MEMBERS, { x: 0.6, y: 4.45, w: 8.8, h: 0.4, fontSize: 16, color: C.background1, margin: 0, isTextBox: true, objectName: "Members" });
-  s.addNotes("Thank you. We are happy to take your questions.");
+  s.addNotes(
+    "To sum up: no model runs in our submission, every rule is plain code backed by an exact test, " +
+    "and the discovery tools know nothing about insurance, so they are ready for the next migration. Thank you, we are happy to take your questions."
+  );
 
   await pres.writeFile({ fileName: OUT });
   await applyTheme(OUT, THEME);
