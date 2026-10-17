@@ -91,11 +91,18 @@ exemption off (35 rows). A hit is attributed in the next slot by undoing one hal
 | Slot | Upload | Payout side | Amount side (annual) |
 |---|---|---|---|
 | 01:51 | `main` | untaxed base 0.00 + law dates from the event month | rounding era + TFS off |
-| 02:51 | d2 | the 10th for every country from the event month | deaths as units |
+| 02:51 | d2-tenth-boc-deaths | the 10th for every country (410 dates) **and the Italian stamp-duty column collected in full at the first payout (167 rows)** | deaths as units (5 rows) |
 | 03:51 | d3-era-split-rappen | **era split**: COBOL rows the 10th, Neuron NG rows each country's law | Swiss 5 Rappen |
 | 04:51 | d4-country-split-dayplus1 | **country split**: CH month end, IT first 10th after payment, DE the 10th | Italian duty day + 1 |
 
 Splits read as: a count above 0 means one of the two halves is right; the next slot runs one half alone.
+
+## Ranking by rows controlled (01:45)
+
+1. Untaxed base (1,995 rows, 80 %): 0.00 is in `main`. 2. Italian stamp-duty column (283 rows, 72 % of Italian payouts;
+only the existence of a collection is verified): whole accrued duty at the first payout in d2. 3. Dates of taxed rows
+(498): 01:51 to 04:51. 4. Movers (337 payouts): the booking follows the payout-day address, nothing to test. 5. Small
+amount ideas (deaths, TFS, rounding era, 5 Rappen).
 
 ## Hourly uploads from 01:00: two questions per slot
 
