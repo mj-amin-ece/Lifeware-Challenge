@@ -262,13 +262,13 @@ async function main() {
     s.addText(value, { x, y: 2.85, w: 4.4, h: 0.85, fontSize: 44, bold: true, fontFace: THEME.headFontFace, color: i === 1 ? C.accent1 : C.text1, margin: 0, isTextBox: true, objectName: `Callout value ${i + 1}` });
     s.addText(label, { x, y: 3.7, w: 4.2, h: 0.65, fontSize: 15, color: C.text2, valign: "top", margin: 0, isTextBox: true, objectName: `Callout label ${i + 1}` });
   });
-  s.addText("Train set, official scoring  ·  t0\u2013t5 run in 1.5 minutes  ·  maintainability index 68", { x: 0.5, y: 4.6, w: 9.0, h: 0.3, fontSize: 11, color: C.accent4, margin: 0, isTextBox: true, objectName: "Results caption" });
+  s.addText("Train set, official scoring  ·  t0\u2013t5 run in 45 seconds  ·  maintainability index 68", { x: 0.5, y: 4.6, w: 9.0, h: 0.3, fontSize: 11, color: C.accent4, margin: 0, isTextBox: true, objectName: "Results caption" });
   s.addNotes(
     "With these rules we reach between 99.7 and 100 percent on every task. " +
     "For surrender values and statements we recalculate the whole fund accounting ourselves, more than five million bookings, " +
     "and every one of them matches Neuron except three that were changed by hand. " +
     "In fact, every remaining difference is a manual correction, and our outlier detection for task five finds them automatically: " +
-    "55 values, including all 38 from the official list and 17 that nobody had listed. Tasks zero to five run in about a minute and a half, with one small module per task."
+    "55 values, including all 38 from the official list and 17 that nobody had listed. Tasks zero to five run in about 45 seconds, with one small module per task."
   );
 
   // 8 t7 -----------------------------------------------------------------------------------------------------------
