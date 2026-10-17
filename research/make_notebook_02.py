@@ -33,7 +33,7 @@ from dateutil.relativedelta import relativedelta
 
 sys.path.insert(0, '..')
 from legacy_loader import LegacyData, valid_on
-from business_calendar import is_business_day, holidays
+from business_calendar import calendar
 from commission import commission
 from schedule import next_due_dates, due_dates, FREQUENCY_MONTHS
 from tools.rule_finder import find_rules, plot_wrong_over_time
@@ -69,16 +69,19 @@ They follow the public holidays of Ticino:
 - after Easter: Easter Monday (+1), Ascension (+39), Whit Monday (+50), Corpus Christi (+60). Good Friday is a
   normal business day.
 
-`business_calendar.py` writes this as a rule, so it also works for 2027. The check against 33 years of prices:
+`business_calendar.py` learns these rules from the price days themselves (fixed dates and days after Easter that
+never have a price), so they also work for 2027. The check against 33 years of prices:
 """)
 code("""
 price_days = set(pd.to_datetime(data.table('NRFPRC').FP_PRCDT.unique()).date)
 weekdays = pd.bdate_range(min(price_days), max(price_days)).date
 
-predicted = {day for day in weekdays if is_business_day(day)}
+business_days = calendar(data)
+predicted = {day for day in weekdays if business_days.is_business_day(day)}
 print('business days without prices:', len(predicted - price_days))
 print('price days that are not business days:', len(price_days - predicted))
-print('holidays 2027:', sorted(holidays(2027)))
+print('learned fixed holidays:', business_days.fixed, ' days after Easter:', business_days.after_easter)
+print('holidays 2027:', sorted(business_days.holidays(2027)))
 """)
 
 md("""
