@@ -106,12 +106,13 @@ class TaxData:
         payouts = defaultdict(list)
         for row in events.itertuples():
             key = (row.EV_POLNR, row.EV_EVTNR)
-            if key in ignored or key not in totals:
+            if key in ignored:
                 continue
             share = Decimal(1) if row.EV_PCTG != row.EV_PCTG else Decimal(str(row.EV_PCTG))
             day = row.EV_EFFDT.date()
-            paid = self.amount_paid(row.EV_POLNR, int(row.EV_EVTTP), day, totals[key])
-            self.stamp_values[key] = totals[key] if int(row.EV_EVTTP) == DEATH else paid
+            sold = totals.get(key, Decimal(0))  # a surrender without units (every premium returned) pays nothing
+            paid = self.amount_paid(row.EV_POLNR, int(row.EV_EVTTP), day, sold)
+            self.stamp_values[key] = sold if int(row.EV_EVTTP) == DEATH else paid
             payouts[row.EV_POLNR].append((int(row.EV_EVTNR), day, row.EV_CHGTS, paid, share))
         return payouts
 
