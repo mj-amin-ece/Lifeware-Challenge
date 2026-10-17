@@ -3,7 +3,8 @@
 - Tax rates are versioned and were sometimes corrected afterwards. Neuron used the rate it knew when it booked a tax:
   the highest version valid on the day among the versions entered before the booking; a regional rate (church tax in
   Bavaria) replaces the general one.
-- The residence of a payout is the address of the policyholder valid on the payout day.
+- The residence of a payout is the address of the policyholder valid on the payout day, as Neuron knew it when it
+  processed the payout.
 - Switzerland taxes in CHF, the other countries in EUR.
 """
 from tax_rates import TaxRates
