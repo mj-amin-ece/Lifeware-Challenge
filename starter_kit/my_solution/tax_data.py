@@ -7,14 +7,17 @@ COBOL system, half up by Neuron NG.
 from collections import defaultdict
 from decimal import Decimal
 
+from dateutil.relativedelta import relativedelta
+
 from accounting import ORDER_TYPES, ignored_events
 from market import Market
 from policies import policy_base
 from rules import conversion_date, money
-from surrender import policy_values
+from surrender import penalty_rate, policy_values
 from tax_rules import Residence, TaxRates, tax_currency
 
 PAYOUT_EVENTS = [400, 410, 500]
+PENALIZED_PAYOUT_EVENTS = [400, 410]
 PAYOUT_BOOKINGS = ['WDR', 'SUR', 'DTH']
 
 
@@ -40,7 +43,25 @@ class TaxData:
         self.premiums = defaultdict(list)
         for row, amount in zip(premiums.itertuples(), data.exact(premiums.PR_AMTRC)):
             self.premiums[row.PR_POLNR].append((row.PR_RCVDT.date(), amount, row.PR_EVTNR))
+        events = data.table('NREVNT')
+        penalized = events[events.EV_EVTTP.isin(PENALIZED_PAYOUT_EVENTS)]
+        self.penalty_events = set(zip(penalized.EV_POLNR, penalized.EV_EVTNR))
         self.values = {}
+
+    def amount_paid(self, policy, payout):
+        """Customer payout after the withdrawal or surrender penalty, in policy currency.
+
+        The scale, completed policy years and waiver periods are shared with t3.
+        Death claims keep their booked unit value. Payout tuples retain the gross
+        value so this withholding convention does not change stamp-duty accruals.
+        """
+        event, day, _, sold, _ = payout
+        if (policy, event) not in self.penalty_events:
+            return sold
+        terms = self.policies[policy]
+        years = relativedelta(day, terms.PH_BEGDT.date()).years
+        rate = penalty_rate(self.data, terms.PD_SRPSCL, years, day)
+        return money(sold * (1 - rate), day < self.conversion)
 
     def payouts(self):
         """

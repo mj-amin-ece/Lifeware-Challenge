@@ -14,7 +14,7 @@ HALF_INCOME = {'held': 12, 'age': 60, 'later age': 62, 'from': dt.date(2005, 1, 
 class PayoutBasis(TaxData):
     def gain(self, policy, payout, withdrawals, country):
         """
-        Gain of a payout in the tax currency: payout less the premiums that belong to the share paid out.
+        Gain in the tax currency: payout after penalty less premiums belonging to the share paid out.
 
         Parameters:
         - policy (str): Policy number.
@@ -25,7 +25,7 @@ class PayoutBasis(TaxData):
         Returns:
         - Decimal: Gain (negative for a loss).
         """
-        _, day, _, amount, share = payout
+        _, day, _, _, share = payout
         basis = Decimal(0)
         for paid_day, premium, _ in self.premiums[policy]:
             if paid_day <= day:
@@ -34,7 +34,8 @@ class PayoutBasis(TaxData):
                     if withdrawn_day >= paid_day:
                         left *= 1 - withdrawn
                 basis += left
-        return self.convert(amount, policy, country, day) - money(basis * share, day < self.conversion)
+        return self.convert(self.amount_paid(policy, payout), policy, country, day) - money(
+            basis * share, day < self.conversion)
 
     def german_base(self, policy, day, gain):
         """
