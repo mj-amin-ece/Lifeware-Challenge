@@ -87,7 +87,7 @@ calculates:
         official list for these policies, plus 17 that nobody had listed.
   \item The biggest discovery: Neuron is really \textbf{two systems}. The old COBOL system (until August 2007)
         rounds, counts ages and charges fees differently from the newer Java system, Neuron NG.
-  \item All six tasks run in about one and a half minutes, and the tools we built work for any other target.
+  \item All six tasks run in about 45 seconds, and the tools we built work for any other target.
 \end{itemize}
 
 % ---------------------------------------------------------------------------------------------------------------------
@@ -335,8 +335,9 @@ evaluation does not score manual corrections, so on the scored rows our rules ar
         three risk bookings of one policy that were corrected by hand.
   \item \textbf{Outliers (t5)}: 55 reported, every one of them a value that differs from our rules by whole francs
         or follows no rule; recall on the official list for these policies 38 of 38.
-  \item \textbf{Runtime}: all six tasks together take 1 minute 36 seconds on the full export. Reading the policy
-        rows as plain tuples instead of pandas rows made the fund accounting about five times faster.
+  \item \textbf{Runtime}: all six tasks together take about 45 seconds on the full export, eight times faster than
+        the first version: plain tuples and lists instead of pandas rows, pyarrow to parse the export, a small month
+        arithmetic instead of dateutil in the monthly loops, and the units of every position kept by date.
   \item \textbf{Maintainability index}: 71.3 (radon, weighted over all files).
 \end{itemize}
 
@@ -427,9 +428,9 @@ Phase & Status & Work \\
 2 First tasks & {\color{exact}done} & t0 and t1; business calendar; rule finder \\
 3 Offer projection & {\color{exact}done} & t2; convention search; COBOL age \\
 4 Fund accounting & {\color{exact}done} & t3 and t4; booking engine checked booking by booking \\
-5 Outliers and speed & {\color{exact}done} & t5 for any target file; fund accounting five times faster \\
+5 Outliers and speed & {\color{exact}done} & t5 for any target file; eight times faster than the first version \\
 6 Visualisations & {\color{exact}done} & t6: errors per system era, statement waterfall, policy timeline \\
-7 Communication & {\color{exact}done} & five notebooks, this report, a 4-minute presentation (8 slides) \\
+7 Communication & {\color{exact}done} & five notebooks, this report, a 5-minute presentation (9 slides) \\
 \bottomrule
 \end{tabularx}
 \end{center}

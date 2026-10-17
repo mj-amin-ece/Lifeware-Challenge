@@ -117,8 +117,8 @@ t4 Annual statement & 34,124 / 34,145 & 99.939\,\% \\
   \item \textbf{t6}: the figure shows why the era matters. With the Neuron NG rules alone, 97\,\% of the statement
         rows of the COBOL era are wrong, and the error fades only slowly after 2007 (still 17\,\% in 2025), because
         old policies carry the wrong balance forward. Our rules stay at 0\,\%.
-  \item \textbf{Runtime and code}: t0--t5 run in about 1.5 minutes (t7 adds one), with a radon maintainability index
-        of 68. The first version took 6 minutes; reading policies as tuples instead of pandas rows made it 5$\times$ faster.
+  \item \textbf{Runtime and code}: t0--t5 run in 45 seconds (t7 adds 3), 8$\times$ faster than our first version after
+        profiling; radon maintainability index 68.
 \end{itemize}
 
 \begin{center}
