@@ -69,7 +69,10 @@ class Withholding(TaxData):
 
     def withholding(self, policy, payout, withdrawals, country, region):
         """
-        Taxable base, withheld tax and surcharges of a payout, for the taxes Neuron booked.
+        Report the payout base independently of whether Neuron booked withholding.
+
+        The absence of a withholding booking controls the tax amounts, rather than
+        erasing the base. Countries without a supported withholding regime keep a zero base.
 
         Returns:
         - tuple: (base, withheld, surcharges, {tax type: amount})
@@ -77,13 +80,15 @@ class Withholding(TaxData):
         event, day, known, amount, _ = payout
         booked, cobol = self.booked[(policy, event)], day < self.conversion
         tax = WITHHOLDING.get(country)
-        if tax not in booked:
-            return Decimal('0.00'), Decimal('0.00'), Decimal('0.00'), {}
         if country == 'CH':
             base = self.convert(amount, policy, country, day)
-        else:
-            base = max(self.gain(policy, payout, withdrawals, country), Decimal(0))
+        elif country in ('IT', 'DE'):
+            base = max(self.gain(policy, payout, withdrawals, country), Decimal('0.00'))
             base = self.german_base(policy, day, base) if country == 'DE' else base
+        else:
+            base = Decimal('0.00')
+        if tax not in booked:
+            return base, Decimal('0.00'), Decimal('0.00'), {}
         rate, _ = self.rates.rate(country, tax, day, known)
         withheld = money(base * rate, cobol)
         amounts = {tax: withheld}
