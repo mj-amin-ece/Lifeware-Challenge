@@ -81,6 +81,26 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## Hourly uploads from 01:00: two questions per slot
+
+e8 scored 0/40 and 11/30, exactly like e7-payday: both date rules from the payment month fail every taxed row, and
+the Italian and German formulas did not move the annual count (124 annual rows changed). Untaxed rows already have
+no date, so inside the 0/40 they scored 0 too: they are absent from the sample or want another base.
+
+Each slot now carries one *amount* question (read on the annual count, which has no dates) and one *payout*
+question (untaxed base or date rule, read on the payout count).
+
+| Slot | Upload | Payout question | Amount question (annual) |
+|---|---|---|---|
+| 01:51 | u1-h0 (= main) | untaxed rows: base 0.00 (H0) | old premiums rounded by the payout's era (40 annual rows) |
+| 02:51 | d1 | law dates from the event month (never scored on this sample) | TFS not applied (35 DE rows) |
+| 03:51 | d2 | 10th of the next month from the event month (E6, never scored) | deaths as the value of the units |
+| 04:51 | d3 | end of the next month | Italian duty at a surrender with one day more (days + 1) |
+| later | the best of each column, then the final | | |
+
+Reading: a payout count above 0 names the untaxed base or the date rule; an annual count different from 11 names
+the amount hypothesis (up: keep; down: revert).
+
 ## Sequence if more evaluations are available (00:40)
 
 Single changes, each on top of the previous winner, kept only if the count does not fall:
