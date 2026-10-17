@@ -13,21 +13,32 @@ export, and write them as clear, deterministic Python code.
 | t3 Surrender value | 99.740 % | every premium and charge booking calculated; the 16 misses are manual corrections |
 | t4 Annual statement | 99.939 % | the 21 misses are manual corrections |
 | t5 Outliers | 55 found | all 38 NREXCP corrections of the train policies plus 17 unlisted ones |
+| t7 Tax audit (surprise) | no targets | both examples of the task exact; every tax Neuron booked gets an amount |
 
-Maintainability index (radon): 71.3. Runtime of all six tasks: about 1.5 minutes.
+Maintainability index (radon): 68. Runtime: about 1.5 minutes for t0-t5, 1 minute more for t7.
 
 ## Approach
 
-AI is the detective, not the calculator: the submission is plain, deterministic code, and machine learning only
-helps to find the rules. For every task:
+AI is the detective, not the calculator: the submission is plain, deterministic code, and machine learning and
+search only help to find the rules. Every task goes through the same loop:
 
 1. Write the simplest rule from the task description.
 2. Mark the values where it differs from the target.
-3. Let the **rule finder** (`tools/rule_finder.py`, a shallow decision tree) show which conditions separate the
-   wrong values from the right ones. Its splits are the hidden rules, e.g. "start day > 28 and start before 2007".
-4. Turn the condition into code, check it against the target, repeat.
+3. Ask the generic tools **why**:
 
-The rule finder knows nothing about insurance, so it works for any new target.
+| Question | Tool | Example of a rule it found |
+|---|---|---|
+| Under which conditions is the rule wrong? | `tools/rule_finder.py` (shallow decision tree) | due dates drift for month-end starts before 2007 |
+| On which day did the behaviour change? | `tools/change_points.py` | the COBOL -> Java conversion of 2007-08-11 |
+| What do the differences say? | `tools/residuals.py` (implied ratios, rounding modes, difference classes) | COBOL charged days / 360 and cut off the cents; whole-franc differences are manual corrections |
+| Which convention is it? | `tools/convention_search.py` (exhaustive search, standard candidates) | the order of the charges; Actual/360 with cut-off rounding |
+| No targets: does the rule book what the legacy system booked? | `tools/weak_labels.py` | the Swiss withholding tax needs an objection to reporting and more than CHF 5,000 |
+| Which days are business days? | `business_calendar.py` (learned from the price days) | the public holidays of Ticino |
+
+4. Turn the answer into code, check it exactly, repeat until only manual corrections are left.
+
+None of the tools knows anything about insurance, so the loop works for any new target. Notebook 06 shows each tool
+rediscovering one of our rules on its own; t7 shows the loop working without any target values (notebook 07).
 
 ## Setup
 
@@ -111,17 +122,20 @@ train policies are exact except one manual correction.
 
 - `submission.py`: the entry point, one function per task.
 - `commission.py` (t0), `schedule.py` (t1), `projection.py` (t2), `surrender.py` (t3), `statement.py` (t4),
-  `outliers.py` (t5): one module per task.
+  `outliers.py` (t5), `taxes.py` with `tax_rules.py` and `stamp_duty.py` (t7): one module per task.
 - `risk.py`: risk charge (sum at risk, entry age, mortality table), shared by t2 and t3.
 - `rules.py`: shared building blocks (loading, date-valid lookups, rounding by system era, conversion date).
 - `business_calendar.py`: business days and holidays.
 - `legacy_loader.py`, `legacy_formats.py`: reading and decoding the export.
-- `tools/rule_finder.py`: finds the conditions under which a rule is wrong (decision tree), plots errors over time.
+- `tools/rule_finder.py`, `tools/change_points.py`, `tools/residuals.py`, `tools/convention_search.py`,
+  `tools/weak_labels.py`: the generic discovery tools (see Approach).
 - `tools/visuals.py` (t6): share of wrong values per year and system era, waterfall of an annual statement.
 - `tools/policy_timeline.py`: prints all data of one policy and plots its timeline
   (`python tools/policy_timeline.py BL10000013`).
 - `notebooks/01_Data_Exploration.ipynb`: Data Processing, and a walk-through of policy `BL10000013`.
 - `notebooks/02_Task_Rules_t0_t1.ipynb`: how the rules of t0 and t1 were found, with the evidence.
+- `notebooks/06_Generic_Toolkit.ipynb`: every generic tool rediscovers one of our rules on its own.
+- `notebooks/07_Task_t7_Without_Targets.ipynb`: t7 solved with weak labels, the examples and consistency checks.
 - `notebooks/05_Visualizations.ipynb` (t6): what happens with the Neuron NG rules for all years, and a statement
   waterfall; the figures are in `Plots/`.
 - `notebooks/04_Task_Rules_t3_t4.ipynb`: how the fund accounting rules were found (teacher forcing, per-booking

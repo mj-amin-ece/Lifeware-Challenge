@@ -6,9 +6,7 @@ calculates the amounts:
 - Gain of a payout: the payout converted into the tax currency on the payout day, less the premiums paid, each one
   converted on the day it was received (and reduced by the shares already withdrawn), times the share now withdrawn.
 - CH: withholding tax (VST) on the whole payout in CHF.
-- IT: substitute tax (SOS) on the gain. The stamp duty on the policy value (BOL) is accrued every 31 December, at the
-  rate known when it was booked, and collected (BOC) when money is paid out; a later correction of a rate re-books
-  the difference.
+- IT: substitute tax (SOS) on the gain; the stamp duties are in stamp_duty.py.
 - DE: capital gains tax (KST) on the gain, less the partial exemption (TFS) from 2018 and only half of it (HEV) after
   12 years and from the age of 60 (62 from 2012); solidarity surcharge (SOL) and church tax (KIS) on the KST.
 - Amounts are rounded to the cent by system era: cut off by the COBOL system, half up by Neuron NG.
@@ -24,6 +22,7 @@ from accounting import ignored_events
 from market import Market
 from policies import policy_base
 from rules import conversion_date, money
+from stamp_duty import premium_stamp_duty, stamp_duty
 from surrender import policy_values
 from tax_rules import Residence, TaxRates, remittance_date, tax_currency
 
@@ -176,39 +175,6 @@ class TaxModule:
             self.values[day] = policy_values(self.data, self.market, day)
         return self.values[day].get(policy, Decimal(0))
 
-    def stamp_duty(self, policy, payouts):
-        """
-        Italian stamp duty (BOL) bookings of a policy, in the order Neuron booked them.
-
-        Year-end bookings tax the policy value of 31 December at the rate known then; a payout books the share of its
-        year; a later correction re-books every earlier year at the rate known at the correction.
-
-        Returns:
-        - list: [(day, amount)]
-        """
-        paid = {event: (day, amount) for event, day, _, amount, _ in payouts}
-        booked_years, result = {}, []
-        for row in self.bookings[(self.bookings.TB_POLNR == policy) & (self.bookings.TB_TAXTP == 'BOL')].itertuples():
-            day = row.TB_EFFDT.date()
-            if row.TB_EVTNR in paid:
-                rate, _ = self.rates.rate('IT', 'BOL', day, row.TB_CHGTS)
-                value = self.convert(paid[row.TB_EVTNR][1], policy, 'IT', day)
-                elapsed = Decimal((day - dt.date(day.year, 1, 1)).days) / 365
-                result.append((day, money(value * rate * elapsed, day < self.conversion)))
-            elif (day.month, day.day) == (12, 31):
-                value = self.convert(self.policy_value(policy, day), policy, 'IT', day)
-                rate, _ = self.rates.rate('IT', 'BOL', day, row.TB_CHGTS)
-                booked_years[day] = (value, money(value * rate, day < self.conversion))
-                result.append((day, booked_years[day][1]))
-            else:
-                correction = Decimal(0)
-                for year_end, (value, old) in booked_years.items():
-                    rate, _ = self.rates.rate('IT', 'BOL', year_end, row.TB_CHGTS)
-                    new = money(value * rate, day < self.conversion)
-                    booked_years[year_end], correction = (value, new), correction + new - old
-                result.append((day, correction))
-        return result
-
     def policy_taxes(self, policy, payouts):
         """
         Payout rows and yearly amounts of one policy.
@@ -217,7 +183,7 @@ class TaxModule:
         - tuple: ({event: payout row}, {(year, tax type): amount})
         """
         rows, yearly, withdrawals = {}, defaultdict(Decimal), []
-        accruals = self.stamp_duty(policy, payouts)
+        accruals = stamp_duty(self, policy, payouts)
         for day, amount in accruals:
             yearly[(day.year, 'BOL')] += amount
         collected = Decimal(0)
@@ -238,23 +204,6 @@ class TaxModule:
             rows[event] = (country, base, withheld, surcharges, stamp, remitted)
             withdrawals.append((day, share))
         return rows, yearly
-
-    def premium_stamp_duty(self):
-        """
-        Swiss stamp duty (STP) on the premiums Neuron booked it for, by policy and year.
-
-        Returns:
-        - dict: {(policy, year): amount in CHF}
-        """
-        yearly = defaultdict(Decimal)
-        for row in self.bookings[self.bookings.TB_TAXTP == 'STP'].itertuples():
-            premium = [(day, amount) for day, amount, event in self.premiums[row.TB_POLNR] if event == row.TB_EVTNR]
-            if premium:
-                day = premium[0][0]
-                rate, _ = self.rates.rate('CH', 'STP', day, row.TB_CHGTS)
-                yearly[(row.TB_POLNR, day.year)] += money(self.convert(premium[0][1], row.TB_POLNR, 'CH', day) * rate,
-                                                          day < self.conversion)
-        return yearly
 
 
 @functools.cache
@@ -277,9 +226,9 @@ def tax_results(data):
         for (year, tax), amount in amounts.items():
             yearly[(policy, year)][ANNUAL_TAXES.index(tax)] += amount
     for policy in {row.TB_POLNR for row in module.bookings.itertuples() if row.TB_TAXTP == 'BOL'} - set(all_payouts):
-        for day, amount in module.stamp_duty(policy, []):
+        for day, amount in stamp_duty(module, policy, []):
             yearly[(policy, day.year)][ANNUAL_TAXES.index('BOL')] += amount
-    for (policy, year), amount in module.premium_stamp_duty().items():
+    for (policy, year), amount in premium_stamp_duty(module).items():
         yearly[(policy, year)][ANNUAL_TAXES.index('STP')] += amount
     annual = {key: tuple(values) for key, values in yearly.items() if any(values)}
     return payout_rows, annual
