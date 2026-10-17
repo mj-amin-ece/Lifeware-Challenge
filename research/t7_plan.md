@@ -72,6 +72,15 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
 | > 0 | the law-faithful model passes some rows | morning: ablate the E5 bets (deaths, negative bases) via e6-safe + the e8 changes |
 | 0 | something basic is wrong in every row: the gain basis for partial withdrawals, or the dates again | morning: e6-safe with law dates from the payment day |
 
+## Prepared for the morning (00:30)
+
+- `e9-safe-law`: evidence-only amounts (Version-2: deaths as units, gross stamp basis), losses 0.00, law dates from
+  the payment day. The fallback if e8 scores 0/40 again.
+- Open coin flips, none decidable locally, each worth 1-2 rows of a 40-case sample: the rounding era of premiums
+  converted at payout (63 taxed IT/DE rows change by 1-81 cents), the death amount (49), signed losses (396
+  untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
+  surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
+
 ## Slot by slot
 
 | When | Upload | Rule |
