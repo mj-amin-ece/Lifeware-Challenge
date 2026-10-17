@@ -115,7 +115,7 @@ class TaxData:
             payouts[row.EV_POLNR].append((int(row.EV_EVTNR), day, row.EV_CHGTS, paid, share))
         return payouts
 
-    def convert(self, amount, policy, country, day):
+    def convert(self, amount, policy, country, day, calculated_on=None):
         """
         Convert an amount of the policy currency into the tax currency of a country, rounded by system era.
 
@@ -123,13 +123,15 @@ class TaxData:
         - amount (Decimal): Amount in the policy currency.
         - policy (str): Policy number.
         - country (str): Country of the tax.
-        - day (datetime.date): Day of the conversion.
+        - day (datetime.date): Day whose exchange rate converts.
+        - calculated_on (datetime.date): Day the system did the conversion, which decides the rounding (the tax
+          currency is only known at the payout, so old premiums are converted then); default `day`.
 
         Returns:
         - Decimal: Amount in the tax currency.
         """
         rate = self.market.rate(self.policies[policy].PH_CCY, day) / self.market.rate(tax_currency(country), day)
-        return money(amount * rate, day < self.conversion)
+        return money(amount * rate, (calculated_on or day) < self.conversion)
 
     def policy_value(self, policy, day):
         """Value of a policy on `day` in its currency (the valuation of t3), cached per day."""

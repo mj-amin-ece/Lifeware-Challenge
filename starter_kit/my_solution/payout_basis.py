@@ -29,7 +29,7 @@ class PayoutBasis(TaxData):
         basis = Decimal(0)
         for paid_day, premium, _ in self.premiums[policy]:
             if paid_day <= day:
-                left = self.convert(premium, policy, country, paid_day)
+                left = self.convert(premium, policy, country, paid_day, calculated_on=day)
                 for withdrawn_day, withdrawn in withdrawals:
                     if withdrawn_day >= paid_day:
                         left *= 1 - withdrawn
