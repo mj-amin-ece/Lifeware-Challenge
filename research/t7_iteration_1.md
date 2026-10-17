@@ -50,7 +50,8 @@ kept unchanged to isolate the effect of the reported base.
 This revision tests the specific bases above, not every possible interpretation
 of H1. Whether an exempt base should instead be zero, whether losses should be
 negative, and whether German exemptions alter the reported base remain open
-questions. No MI refactor is part of this iteration.
+questions. The initial hypothesis-only commit contained no MI refactor; the
+combined submission below adds an output-equivalent MI refactor.
 
 ## Local comparison
 
@@ -60,7 +61,8 @@ questions. No MI refactor is part of this iteration.
 - Every annual row is exactly unchanged.
 - Both examples from the task description still match all columns exactly.
 - T0-T4 scores remain 99.9956%, 100%, 99.7350%, 99.7400%, and 99.9385%; T5 still
-  flags 55 outliers. Local MI remains 75.3/100.
+  flags 55 outliers. The hypothesis-only code's local MI was 75.3/100; the
+  combined submission's local MI is 83.3/100.
 
 Before/after snapshots, the original `withholding.py`, comparison statistics and
 the validation log are saved locally in `.cache/t7-base-v1/` (ignored by Git).
@@ -73,6 +75,42 @@ Revision identity, to distinguish this experiment from later changes:
   `e2353734d81200faa9ec9df1f774d6226f73c7d681276e4f7dc2e2cebe2371e0`.
 - Original `withholding.py` SHA-256:
   `12a7be71827cd882adf25515193eff62e14c4af932b40c9cf187b42d500fbfc9`.
+
+## Combined submission: the same H1 experiment plus MI refactoring
+
+The hypothesis-only code was committed as
+`cf3f7ee8454340c813e43a4f4beb533a12cf35fa`. The proposed submission combines that
+H1 with the MI refactor documented in [mi_refactor.md](mi_refactor.md).
+The hashes above identify the earlier source layout, not the refactored files.
+Gain and German-base methods now live in `payout_basis.py`; `withholding.py`
+still calculates the base before checking whether withholding was booked.
+
+The comparison chain is:
+
+| Version | T7 calculation behavior | Local MI |
+|---|---|---:|
+| Previously evaluated H0 | Untaxed payouts have zero base; organizer scored payout 1/20, annual 15/20 | 75.3 |
+| Committed H1 (`cf3f7ee`) | Calculate base independently of withholding | 75.3 |
+| H1 plus MI refactor | Exactly the same T7 outputs as committed H1 on the full local export | 83.3 |
+
+Final verification confirms:
+
+- All 2,491 payout rows and 6,381 annual rows equal the committed H1 outputs.
+- Relative to H0, the only changes remain 1,442 formerly zero payout bases:
+  CH 1,403; DE 30; IT 9. Every other payout column and every annual amount remain
+  identical to H0.
+- All 132 original callable bodies, signatures and decorators retain identical
+  executable ASTs, with all 37 checked literal constants unchanged. The MI
+  refactor reorganizes the implementation without changing the calculation steps.
+- The final source files match the hashes captured for the complete regression
+  run, including intermediate accounting verification.
+
+Therefore the combined submission does not introduce a second T7 calculation
+hypothesis. Organizer feedback still tests H1 against H0, subject to the sampling
+and exact-row limitations below. This is strong local equivalence evidence, not
+an organizer accuracy result or a formal proof over every possible input.
+All new helper modules must be included when committing or packaging the code.
+Record the actual combined submission commit when it is available.
 
 ## Reading the next result
 
