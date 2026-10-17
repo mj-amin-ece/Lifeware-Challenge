@@ -1,7 +1,9 @@
 # T7 organizer evaluation: iteration 1
 
 Prepared on 2026-10-17. Previous organizer results: payout **1/20**, annual **15/20**.
-New organizer results are pending; there are no local T7 targets.
+Returned H1 results: payout **1/20**, annual **15/20**, unchanged.
+The organizer confirmed that the same 20 cases were reused, as reported by the
+user on 2026-10-17. There are still no local T7 targets.
 
 ## Purpose of the experiment
 
@@ -110,7 +112,9 @@ hypothesis. Organizer feedback still tests H1 against H0, subject to the samplin
 and exact-row limitations below. This is strong local equivalence evidence, not
 an organizer accuracy result or a formal proof over every possible input.
 All new helper modules must be included when committing or packaging the code.
-Record the actual combined submission commit when it is available.
+The combined implementation is now committed locally as `baec875` (`MI improvement`).
+The organizer's acknowledgement of the exact submitted commit has not been
+provided separately.
 
 ## Reading the next result
 
@@ -132,19 +136,63 @@ comparison. An unchanged annual score alone does not prove that cases stayed the
 same. An annual score change cannot come from this revision's annual calculations
 on identical inputs; check the sample, submitted version, or evaluation setup.
 
-## Next result and follow-up
+## Returned result and interpretation
 
-- Submission time/version: **not yet recorded**.
-- New payout correct/total: **pending**.
-- New annual correct/total: **pending**.
-- Same evaluation cases as baseline: **unknown**.
-- Organizer examples, column breakdowns, or other feedback: **pending**.
-- Decision to keep, revert, or refine: **pending**.
+| Evaluated version | Payout | Annual | Same cases? |
+|---|---:|---:|---|
+| Original H0 | 1/20 | 15/20 | Baseline |
+| H1 plus MI refactor | 1/20 | 15/20 | Yes, confirmed by organizer |
 
-When results arrive, first confirm which revision was submitted and whether the
-cases were reused. Interpret the result using the table above. If evidence is
-insufficient, avoid declaring H0 or H1 established. The next independent
-investigations are remittance conventions, partial-withdrawal basis/collection,
-and Italian stamp-duty accruals; preserve this iteration's snapshots before
-changing those formulas. Use feedback to discover general rules, not to hardcode
-individual evaluation results.
+- Submission: reported after the combined H1/MI preparation; local implementation
+  commit is `baec875`. Exact submission time and organizer-confirmed commit hash
+  have not been supplied.
+- Organizer examples or column-level breakdowns: **not supplied**.
+- Assessment: **no net exact-row accuracy improvement on the fixed payout sample;
+  H1 remains unresolved as a field-level convention**.
+
+The same-case confirmation removes changing samples as an explanation for this
+comparison. H1 alone did not increase the number of entirely correct payout rows.
+The unchanged annual score is expected because every annual amount was preserved.
+The MI refactor was independently verified to preserve H1's outputs and executable
+calculation bodies, so it introduces no additional calculation hypothesis here.
+
+Equal scores do not prove equal row identities or equal base accuracy. Either the
+same sole payout row passed both versions, or one old pass was lost and one new
+pass was gained. Because each version has only one correct row, at most one failed
+row could have become fully correct, offset by losing the old correct row.
+Other explanations remain: H1 may not change any evaluated base, or another
+incorrect field may prevent an improved base from producing a passing row.
+Do not label H1 accepted or rejected from this aggregate result alone.
+
+## Coverage audit and next experiment
+
+A local audit after the returned result found that only **13 of the 1,442 changed
+payout rows** have any NRTAXB booking; all 13 have a remittance date. If the
+organizer's curated sample emphasizes payouts with taxes booked, H1 could affect
+very few evaluated rows. The sample's composition remains unknown, so this is a
+possible explanation rather than an established cause.
+
+There are **680** local payouts with remittance dates, **201** of which fall on
+weekends. This identifies a convention to investigate, not proof that dates must
+be adjusted: the task requires Neuron's historical behavior. Event effective and
+processing dates coincide for every local payout checked, and tax-event effective
+dates also coincide, so merely changing that date anchor has no local support.
+
+Retain the current H1/MI code as a frozen comparison point and preserve H0's
+snapshots. No production tax logic was changed after receiving this result.
+Prioritize locating the blocking field before another blind base-only submission:
+one anonymized failed row with expected values, or correct/20 counts per payout
+column, would distinguish country, base, withholding, surcharges, duty and date
+errors. If only aggregate feedback is available, the next experiment should change
+one independent payout convention and record its changed fields and coverage.
+Remaining investigations include remittance conventions, partial-withdrawal
+basis/collection and Italian stamp-duty accruals. Use feedback to discover general
+rules, not to hardcode individual evaluation results.
+
+## Follow-up experiment
+
+The next separately documented experiment is
+[T7 MONDAY — H2](t7_monday_h2.md): move weekend remittance dates to Monday while
+preserving H1's bases, all amounts and annual outputs. Its document records the
+frozen baseline, local coverage, verification and how to interpret another
+correct-out-of-20 result. H1 remains unresolved; H2 is a distinct date hypothesis.
