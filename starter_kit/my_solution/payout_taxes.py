@@ -42,7 +42,7 @@ class TaxModule(Withholding):
                 collected += stamp
             for tax, amount in amounts.items():
                 yearly[(day.year, tax)] += amount
-            remitted = remittance_date(country, day) if withheld + surcharges > 0 else None
+            remitted = remittance_date(country, self.payment_day(policy, day)) if withheld + surcharges > 0 else None
             rows[event] = (country, base, withheld, surcharges, stamp, remitted)
             withdrawals.append((day, share))
         return rows, yearly

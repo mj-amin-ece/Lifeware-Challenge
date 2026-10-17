@@ -34,7 +34,7 @@ class Withholding(PayoutBasis):
         if country == 'CH':
             base = self.convert(self.amount_paid(policy, payout), policy, country, day)
         elif country in ('IT', 'DE'):
-            base = self.gain(policy, payout, withdrawals, country)
+            base = max(self.gain(policy, payout, withdrawals, country), Decimal('0.00'))
             base = self.german_base(policy, day, base) if country == 'DE' else base
         else:
             base = Decimal('0.00')
