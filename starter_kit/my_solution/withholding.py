@@ -11,7 +11,7 @@
   on it (section 32d of the German income tax act).
 """
 from payout_basis import HALF_INCOME, PayoutBasis
-from decimal import Decimal
+from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP
 
 from rules import money
 
@@ -63,6 +63,9 @@ class Withholding(PayoutBasis):
         rate = self.italian_rate(policy, day, known) if country == 'IT' else rate
         church_rate, _ = self.rates.rate(country, 'KIS', day, known, region) if 'KIS' in booked else (None, None)
         withheld = money(base / (4 + church_rate) if church_rate is not None else base * rate, cobol)
+        if country == 'CH':  # D3 test: Swiss amounts rounded to 5 Rappen
+            step = Decimal('0.05')
+            withheld = (withheld / step).quantize(Decimal(1), ROUND_DOWN if cobol else ROUND_HALF_UP) * step
         amounts = {tax: withheld}
         for surcharge in ['SOL', 'KIS']:
             surcharge_rate, _ = self.rates.rate(country, surcharge, day, known, region)

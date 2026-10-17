@@ -27,12 +27,15 @@ def tax_currency(country):
     return TAX_CURRENCY.get(country, 'EUR')
 
 
-def remittance_date(country, day):
+def remittance_date(country, day, cobol=False):
     """Day a tax withheld on `day` was paid to the tax office.
-    Parameters: country (str): Country whose tax office gets the money; day (datetime.date): Day of the payout.
+    Parameters: country (str): Country whose tax office gets the money; day (datetime.date): Day of the payout;
+        cobol (bool): True for a payout of the COBOL era, whose job paid every country on the 10th (D3 test).
     Returns (datetime.date): Remittance date.
     """
     next_month = day.replace(day=1) + relativedelta(months=1)
+    if cobol:
+        return next_month.replace(day=10)
     if country in REMITTANCE_DAY:
         return next_month.replace(day=REMITTANCE_DAY[country])
     return next_month - dt.timedelta(days=1) + dt.timedelta(days=CH_REMITTANCE_DAYS)
