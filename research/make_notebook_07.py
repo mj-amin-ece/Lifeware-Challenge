@@ -190,7 +190,8 @@ Without targets, these parts follow the law and the data structure but could not
   German one (10th of the next month) matches the example;
 - the share of the year in the stamp duty booked at a payout (days / 365);
 - the German partial exemption (from 2018) and half-income rule, which apply only to recent payouts;
-- the taxable base of payouts without a withheld tax (0.00).
+- whether payouts without withholding still report a base: the next organizer evaluation tests reporting the Swiss
+  payout amount or the nonnegative Italian/German gain, with the existing German adjustments, even without withholding.
 
 As soon as the organisers' actuary returns values for a few policies, the same tools (residuals, convention search)
 will settle these points.
