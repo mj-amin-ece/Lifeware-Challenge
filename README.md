@@ -164,7 +164,8 @@ train policies are exact except one manual correction.
 `research/`: exploration scripts (t2 convention search, t3 calibration and booking checks) and the notebook
 builders.
 
-`presentation/`: the 4-minute deck with speaker notes (`build_deck.js`). `report/`: the LaTeX project report.
+`presentation/`: the 5-minute deck with speaker notes (`build_deck.js`) and the 2-minute video script. `report/`: the short
+report and the extended report (LaTeX).
 
 `starter_kit/check.py`, `starter_kit/scoring.py`: local scoring from the organisers. `SCHEMA.md`: description of
 the export.
