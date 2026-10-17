@@ -81,6 +81,17 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## Sequence if more evaluations are available (00:40)
+
+Single changes, each on top of the previous winner, kept only if the count does not fall:
+
+| Order | Upload | Changes vs the previous | Reach |
+|---|---|---|---|
+| 1 | e8-faithful (= main) | law dates from the payment day, church-tax formula, Italian pro-rata | 410 dates, 126 amounts |
+| 2 | e9-rounding | old premiums rounded by the payout's era | 144 rows (63 taxed), 40 annual |
+| 3 | probe: every remittance date None | measures how many untaxed rows pass, i.e. the base semantics of untaxed rows | information only |
+| 4 | e9-safe-law or the clamp | depending on the probe: losses 0.00 / deaths as units | 396 / 49 rows |
+
 ## Slot by slot
 
 | When | Upload | Rule |
