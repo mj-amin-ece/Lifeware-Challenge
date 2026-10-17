@@ -13,6 +13,7 @@ from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 
 from accounting import ORDER_TYPES, ignored_events
+from business_calendar import calendar
 from market import Market
 from policies import policy_base
 from risk import sum_at_risk
@@ -49,6 +50,22 @@ class TaxData:
             self.premiums[row.PR_POLNR].append((row.PR_RCVDT.date(), amount, row.PR_EVTNR))
         self.values = {}
         self.stamp_values = {}
+        # A payout is paid PD_PAYDAY business days after its event; the taxes withheld are due by the month paid
+        self.calendar, payout_days = calendar(data), data.table('NRPROD').set_index('PD_PRDCD').PD_PAYDAY.to_dict()
+        self.payout_days = {policy: int(payout_days[terms.PH_PRDCD]) for policy, terms in self.policies.items()}
+
+    def payment_day(self, policy, day):
+        """
+        Day the money of a payout left the company: the product's number of business days after the event.
+
+        Parameters:
+        - policy (str): Policy number.
+        - day (datetime.date): Effective date of the payout.
+
+        Returns:
+        - datetime.date: Payment day.
+        """
+        return self.calendar.add_business_days(day, self.payout_days[policy])
 
     def amount_paid(self, policy, event_type, day, sold):
         """
