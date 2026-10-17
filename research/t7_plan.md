@@ -1,6 +1,6 @@
 # T7 plan for the remaining evaluations
 
-Written 2026-10-17, 23:20. Deadline Sunday 11:00; one evaluation every two hours; the same 20 payout and 20 annual
+Written 2026-10-17, 21:50. Deadline Sunday 11:00; one evaluation every two hours; the same 20 payout and 20 annual
 cases are reused. Scores so far: payout 1/20 and annual 15/20 for H0, H1 and H2+H3. E5 is being evaluated.
 
 ## What we know
@@ -31,8 +31,8 @@ cases are reused. Scores so far: payout 1/20 and annual 15/20 for H0, H1 and H2+
 
 | When | Upload | Rule |
 |---|---|---|
-| ~00:45, R5 known | R5 ≥ 1: **e6-dates**. R5 = 0: **e6-dates-clamp** | the date test has the highest reach, so it goes first whatever R5 says |
-| ~02:45 or morning, R6 known | R6 > R5: **e7-kis-dates**. R6 < R5: **e7-kis**. R6 = R5: **e7-kis-dates** if R5 = 1, else **e7-kis** | a tie at 1/20 means no taxed row passes under either date rule; the 10th is Neuron's observed job day, so it keeps the tie |
+| ~23:40, R5 known | R5 ≥ 1: **e6-dates**. R5 = 0: **e6-dates-clamp** | the date test has the highest reach, so it goes first whatever R5 says |
+| ~01:40 or morning, R6 known | R6 > R5: **e7-kis-dates**. R6 < R5: **e7-kis**. R6 = R5: **e7-kis-dates** if R5 = 1, else **e7-kis** | a tie at 1/20 means no taxed row passes under either date rule; the 10th is Neuron's observed job day, so it keeps the tie |
 | last result before 11:00 | R7 ≥ R6: keep the church-tax formula, else drop it | |
 | by 10:55 | push the best combination to ch-NaMa main; `git merge` of the chosen branch into main | |
 
