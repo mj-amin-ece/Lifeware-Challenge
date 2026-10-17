@@ -1,6 +1,7 @@
 """t7: the taxes withheld from a payout (withdrawal, surrender, death benefit).
 
-- Gain of a payout: the payout converted into the tax currency on the payout day, less the premiums paid, each one
+- Gain of a payout: the payout after surrender penalty, converted into the tax currency on the payout day,
+  less the premiums paid, each one
   converted on the day it was received (and reduced by the shares already withdrawn), times the share now withdrawn.
 - CH: withholding tax (VST) on the whole payout in CHF.
 - IT: substitute tax (SOS) on the gain.
@@ -27,11 +28,11 @@ class Withholding(PayoutBasis):
         Returns:
         - tuple: (base, withheld, surcharges, {tax type: amount})
         """
-        event, day, known, amount, _ = payout
+        event, day, known, _, _ = payout
         booked, cobol = self.booked[(policy, event)], day < self.conversion
         tax = WITHHOLDING.get(country)
         if country == 'CH':
-            base = self.convert(amount, policy, country, day)
+            base = self.convert(self.amount_paid(policy, payout), policy, country, day)
         elif country in ('IT', 'DE'):
             base = self.gain(policy, payout, withdrawals, country)
             base = self.german_base(policy, day, base) if country == 'DE' else base
