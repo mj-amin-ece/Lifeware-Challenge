@@ -33,6 +33,16 @@ cases are reused. Scores so far: payout 1/20 and annual 15/20 for H0, H1 and H2+
 | e7-law | e7-kis + Italian substitute tax pro rata temporis over the rate periods (law dates): 29 German and 97 Italian taxed rows change |
 | e7-law-dates | the same on top of the 10th for every country |
 
+## The hint in the data: PD_PAYDAY (found 2026-10-17, 23:00, after the organisers said the data holds hints)
+
+NRPROD.PD_PAYDAY, "payout business days": a payout is paid 5 (Classic, Single Premium) or 3 (Flex) business days
+after its event. The German example shows the payout is still *converted* on the event date (the payment-day rate
+gives 5,535.96, not 5,628.16), so amounts stay; but the taxes withheld are due by the month the money was paid, and
+for 95 of the 498 dated payouts (CH 54, IT 28, DE 13) the payment falls in the month after the event. The example
+keeps 2006-08-10 either way. Branches: `e7-payday` (10th rule + payment day) and `e7-payday-law` (law dates +
+payment day); the add-on touches business_calendar.py, tax_data.py and payout_taxes.py only, so it combines with
+the formula branches by cherry-pick.
+
 ## What the web confirms (searched 2026-10-17 evening)
 
 - CH: Art. 16 Abs. 1 lit. d VStG, insurance benefits are due 30 days after the end of the month of the payout: our
@@ -51,7 +61,8 @@ So the "faithful law" model is e7-law: our dates, plus the two formulas above.
 | When | Upload | Rule |
 |---|---|---|
 | ~23:40, R5 known | R5 ≥ 1: **e6-dates**. R5 = 0: **e6-safe** | the date test has the highest reach, so it goes first whatever R5 says; at 0/20 every unverified bet is undone at once |
-| ~01:40 or morning, R6 known | R6 > R5: **e7-law-dates**. R6 < R5: **e7-law**. R6 = R5 = 1: **e7-law** (law dates; the amounts of IT and DE rows are then the only lever left). R6 = R5 > 1: **e7-law** | a tie at 1/20 means no taxed row passes under either date rule; the 10th is Neuron's observed job day, so it keeps the tie |
+| ~01:40 or morning, R6 known | R6 ≥ 2: **e7-payday** (the 10th is right; the payment month adds the rest). R6 ≤ 1: **e7-payday-law** (the 10th is wrong: law dates from the payment month) |
+| next slot, R7 known | add the law formulas (e7-law commit) on top of whichever date rule scored best; revert the payment day only if R7 < R6 | a tie at 1/20 means no taxed row passes under either date rule; the 10th is Neuron's observed job day, so it keeps the tie |
 | last result before 11:00 | R7 ≥ R6: keep the church-tax formula, else drop it | |
 | by 10:55 | push the best combination to ch-NaMa main; `git merge` of the chosen branch into main | |
 
