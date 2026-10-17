@@ -140,20 +140,11 @@ OPTIONS = {
 }
 
 if __name__ == '__main__':
+    from tools.convention_search import search
     pol = policies()
     py = pd.read_csv(T + 't2_projection_year.csv')
     target = py.groupby('policy_id').value.apply(lambda s: [Decimal(str(x)).quantize(CENT) for x in s])
     subset = pol[(pol.PH_PRDCD == sys.argv[1])].head(int(sys.argv[2])) if len(sys.argv) > 2 else pol.head(100)
-    keys = list(OPTIONS)
-    results = []
-    for combo in itertools.product(*OPTIONS.values()):
-        opts = dict(zip(keys, combo))
-        ok_y1 = ok_all = 0
-        for pid, p in subset.iterrows():
-            v = project(p, opts, years=3)
-            t = target[pid][:3]
-            ok_y1 += v[0] == t[0]
-            ok_all += v[:len(t)] == t
-        results.append((ok_y1, ok_all, opts))
-    for r in sorted(results, key=lambda r: -r[0])[:8]:
-        print(r[0], r[1], r[2])
+    # Exact first three policy years per combination of the conventions in OPTIONS
+    print(search(OPTIONS, lambda choice: [project(p, choice, years=3) == target[pid][:3] for pid, p in subset.iterrows()],
+                 top=8).to_string())

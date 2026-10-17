@@ -23,3 +23,6 @@ presentation/preview/
 
 # Office lock files
 ~$*
+
+# t7 targets from the organisers (never published)
+starter_kit/targets_t7/
