@@ -81,6 +81,16 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## 06:05: c6 scored payout 1/40, annual 11/30 (77.01 %, best); c7 is main
+
+The hit came back (it sits in group 0 under "end of the next month" or group 3 under "quarter end + 30"); the rows
+that got the same rules added nothing, so the sample has few Swiss taxed rows. The German exemption (rate table) is
+neutral and stays; the Italian era split added nothing and goes back to the legal 16th. c7 puts every Swiss payout on
+the end of the next month (only groups 2-3 change): payout stays 1 -> month end is the rule; drops to 0 -> the
+quarter rule is. Annual side: the category probe from the leaderboard-probing papers (Whitehill 2017, Hardt 2018):
+the 5,438 rows with only Italian duty are left out (PROBE, never the final), so the annual count = correct rows among
+withholding / premium stamp duty / mixed rows; 11 minus it = correct Italian-duty-only rows.
+
 ## 05:30: c4 scored payout 0/40, annual 11/30; c5 is main
 
 The first-year revert restored annual 11/30. The payout hit of 03:56 vanished under c4, whose rows for "day paid +
