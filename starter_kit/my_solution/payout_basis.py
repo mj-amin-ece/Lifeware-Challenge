@@ -29,7 +29,7 @@ class PayoutBasis(TaxData):
         basis = Decimal(0)
         for paid_day, premium, _ in self.premiums[policy]:
             if paid_day <= day:
-                left = self.convert(premium, policy, country, paid_day, calculated_on=day)
+                left = self.convert(premium, policy, country, paid_day)
                 for withdrawn_day, withdrawn in withdrawals:
                     if withdrawn_day >= paid_day:
                         left *= 1 - withdrawn
@@ -48,7 +48,8 @@ class PayoutBasis(TaxData):
         Returns:
         - Decimal: Taxable base.
         """
-        base = gain  # D1 test: the partial exemption (TFS) is not applied at withholding
+        exemption, _ = self.rates.rate('DE', 'TFS', day)
+        base = gain * (1 - (exemption or 0))
         terms = self.policies[policy]
         applied = terms.PH_APPDT.date()
         age = HALF_INCOME['later age'] if applied >= HALF_INCOME['later from'] else HALF_INCOME['age']

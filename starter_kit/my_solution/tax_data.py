@@ -10,15 +10,12 @@ threshold of CHF 5,000 is met by the net amount in every booking), a death claim
 from collections import defaultdict
 from decimal import Decimal
 
-from dateutil.relativedelta import relativedelta
-
 from accounting import ORDER_TYPES, ignored_events
 from business_calendar import calendar
 from market import Market
 from policies import policy_base
-from risk import sum_at_risk
 from rules import conversion_date, money
-from surrender import penalty_rate, policy_values
+from surrender import policy_values
 from tax_rules import Residence, TaxRates, tax_currency
 
 PAYOUT_EVENTS = [400, 410, 500]
@@ -69,7 +66,7 @@ class TaxData:
 
     def amount_paid(self, policy, event_type, day, sold):
         """
-        What the customer received for the units sold: less the surrender penalty, or plus the sum at risk on death.
+        The amount a payout is taxed on: the value of the units sold, as booked (S: the simplest model).
 
         Parameters:
         - policy (str): Policy number.
@@ -80,11 +77,7 @@ class TaxData:
         Returns:
         - Decimal: Amount paid in the policy currency, rounded by system era.
         """
-        terms = self.policies[policy]
-        if event_type == DEATH:
-            return money(sold + sum_at_risk(terms.OPTION, sold, terms.RK_SUMIN), day < self.conversion)
-        years = relativedelta(day, terms.PH_BEGDT.date()).years
-        return money(sold * (1 - Decimal(penalty_rate(self.data, terms.PD_SRPSCL, years, day))), day < self.conversion)
+        return sold  # S: the simplest model taxes the payout as booked
 
     def payouts(self):
         """
