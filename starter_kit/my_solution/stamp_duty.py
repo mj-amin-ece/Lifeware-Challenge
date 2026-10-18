@@ -11,8 +11,17 @@ from decimal import Decimal
 
 from rules import money
 
+# Share of the year charged at a payout: actual days, one day more, completed months (Neuron NG charges by the month),
+# 30/360 days (COBOL charges)
+DAY_COUNTS = {
+    'days/365': lambda day: Decimal((day - dt.date(day.year, 1, 1)).days) / 365,
+    'days+1/365': lambda day: Decimal((day - dt.date(day.year, 1, 1)).days + 1) / 365,
+    'months/12': lambda day: Decimal(day.month - 1) / 12,
+    'days/360': lambda day: Decimal((day.month - 1) * 30 + min(day.day, 30) - 1) / 360,
+}
 
-def stamp_duty(module, policy, payouts):
+
+def stamp_duty(module, policy, payouts, day_count='days/365'):
     """
     Italian stamp duty (BOL) bookings of a policy, in the order Neuron booked them.
 
@@ -34,7 +43,7 @@ def stamp_duty(module, policy, payouts):
         if row.TB_EVTNR in paid:
             rate, _ = module.rates.rate('IT', 'BOL', day, row.TB_CHGTS)
             value = module.convert(paid[row.TB_EVTNR][1], policy, 'IT', day)
-            elapsed = Decimal((day - dt.date(day.year, 1, 1)).days) / 365
+            elapsed = DAY_COUNTS[day_count](day)
             result.append((day, money(value * rate * elapsed, day < module.conversion)))
         elif (day.month, day.day) == (12, 31):
             value = module.convert(module.policy_value(policy, day), policy, 'IT', day)
