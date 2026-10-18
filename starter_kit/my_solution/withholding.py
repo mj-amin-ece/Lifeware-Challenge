@@ -31,7 +31,7 @@ class Withholding(PayoutBasis):
         booked, cobol = self.booked[(policy, event)], day < self.conversion
         tax = WITHHOLDING.get(country)
         if tax not in booked:
-            return Decimal('0.00'), Decimal('0.00'), Decimal('0.00'), {}
+            return self.untaxed_base(policy, payout, country), Decimal('0.00'), Decimal('0.00'), {}
         if country == 'CH':
             base = self.convert(self.amount_paid(policy, payout), policy, country, day)
         elif country in ('IT', 'DE'):
@@ -47,6 +47,15 @@ class Withholding(PayoutBasis):
             if surcharge in booked and surcharge_rate is not None:
                 amounts[surcharge] = money(withheld * surcharge_rate, cobol)
         return base, withheld, sum(amounts.get(name, Decimal('0.00')) for name in ['SOL', 'KIS']), amounts
+
+    def untaxed_base(self, policy, payout, country):
+        """M3 test, base of a payout nothing was withheld from (0.00 and the natural base never scored): outside
+        Switzerland the amount paid; in Switzerland the value before the surrender penalty, 0.00 without a penalty."""
+        _, day, _, sold, _ = payout
+        paid = self.amount_paid(policy, payout)
+        if country != 'CH':
+            return self.convert(paid, policy, country, day)
+        return self.convert(sold, policy, country, day) if paid < sold else Decimal('0.00')
 
     def reported_tax(self, policy, payout, address):
         """Swiss tax on a payout above the threshold of a holder who did not object: reported, not withheld."""
