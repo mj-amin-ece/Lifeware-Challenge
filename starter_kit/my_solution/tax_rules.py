@@ -28,14 +28,15 @@ def tax_currency(country):
 
 
 def swiss_remittance_split(policy, day, paid):
-    """C4 test: two Swiss deadline rules, each for half of the policies (policy number modulo 4: 0-1 and 2-3).
+    """C5 test: the two Swiss rules that produced the first correct row, each for half of the policies.
     Parameters: policy (str): Policy number; day (datetime.date): Day of the payout; paid (datetime.date): Day paid.
     Returns (datetime.date): Remittance date of the group's rule.
     """
     group = int(policy[2:]) % 4
-    if group in (0, 1):  # C4: 30 days after the day paid, for half of the policies
-        return paid + dt.timedelta(days=30)
-    return day + dt.timedelta(days=30)  # C4: 30 days after the payout, for the other half
+    if group in (0, 1):  # C5: the end of the next month, for half of the policies
+        return day.replace(day=1) + relativedelta(months=2) - dt.timedelta(days=1)
+    quarter_end = dt.date(day.year, (day.month - 1) // 3 * 3 + 3, 1) + relativedelta(months=1) - dt.timedelta(days=1)
+    return quarter_end + dt.timedelta(days=30)  # C5: 30 days after the end of the quarter, for the other half
 
 
 def remittance_date(country, day):
