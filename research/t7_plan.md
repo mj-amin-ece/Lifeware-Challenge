@@ -81,13 +81,22 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
-## 07:45: m4 draft (branch m4-daycount, not main until m3 is uploaded)
+## 08:10: m3 scored payout 2/40, annual 12/30 (77.85 %, best); m4 is main
 
-m3 + the duty collected at an Italian surrender or death charges its last year by one of four day counts, by policy
-number modulo 4: 0 days / 365 (today), 1 days + 1 / 365, 2 completed months / 12 (Neuron NG charges by the month),
-3 30/360 days (COBOL charges). Only the duty column of 93 payouts changes (groups 1-3), the annual table is identical,
-so it is free and attributes itself by group. To finish after the m3 result: annual > 11 adds the reported tax to the
-20 existing years; payout >= 2 splits the m3 additions by group to attribute them.
+Annual 12: m3 changed no existing annual row, so at least one of the 867 rows of reported Swiss tax is right: the
+annual table holds the tax reported instead of withheld ("withheld, accrued or reported"). Only Swiss residents have
+the objection status E (all IT, DE, LU residents are M), so reporting is a Swiss rule only. Payout 2: the Swiss hit
+survived, so the end of the next month is the Swiss rule; one more row passed, most likely a second Swiss taxed row
+now on month end (one of the free additions otherwise). Everything stays; attribution is not worth a slot.
+
+m4 = m3 plus:
+- Reported tax also in the 11 existing years (10 with Swiss premium duty, 1 mover): ch_vst = withheld + reported.
+- The duty collected at an Italian surrender or death charges its last year by one of four day counts, by policy
+  number modulo 4: 0 days / 365 (today), 1 days + 1 / 365, 2 completed months / 12 (Neuron NG charges by the month),
+  3 30/360 days (COBOL charges). Only the duty column of 93 payouts changes (groups 1-3), the annual table keeps
+  days / 365, so it is free and attributes itself by group.
+
+Reading: payout > 2 = a day count hit (group named next slot); annual > 12 = one of the 11 years.
 
 ## 07:40: m3 replaces m2 as main (law and vocabulary, free tests)
 

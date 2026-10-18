@@ -41,9 +41,7 @@ def tax_results(data):
             yearly[(policy, day.year)][ANNUAL_TAXES.index('BOL')] += amount
     for (policy, year), amount in premium_stamp_duty(module).items():
         yearly[(policy, year)][ANNUAL_TAXES.index('STP')] += amount
+    for key, amount in reported.items():  # the Swiss tax reported instead of withheld counts as Swiss tax (m3: +1 row)
+        yearly[key][ANNUAL_TAXES.index('VST')] += amount
     annual = {key: tuple(values) for key, values in yearly.items() if any(values)}
-    # M3 test: a year with only reported Swiss tax gets a row; rows that already exist stay as they are
-    vst = ANNUAL_TAXES.index('VST')
-    annual.update({key: tuple(amount if i == vst else Decimal('0.00') for i in range(len(ANNUAL_TAXES)))
-                   for key, amount in reported.items() if amount and key not in annual})
     return payout_rows, annual
