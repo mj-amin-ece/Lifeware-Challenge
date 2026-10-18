@@ -34,18 +34,18 @@ def stamp_duty(module, policy, payouts):
         if row.TB_EVTNR in paid:
             rate, _ = module.rates.rate('IT', 'BOL', day, row.TB_CHGTS)
             value = module.convert(paid[row.TB_EVTNR][1], policy, 'IT', day)
-            elapsed = Decimal((day - dt.date(day.year, 1, 1)).days) / 365
+            # days of the year up to and including the payout day, over the days of that year (public samples)
+            elapsed = Decimal((day - dt.date(day.year, 1, 1)).days + 1) / ((dt.date(day.year, 12, 31) - dt.date(day.year, 1, 1)).days + 1)
             result.append((day, money(value * rate * elapsed, day < module.conversion)))
         elif (day.month, day.day) == (12, 31):
             value = module.convert(module.policy_value(policy, day), policy, 'IT', day)
             rate, _ = module.rates.rate('IT', 'BOL', day, row.TB_CHGTS)
-            booked_years[day] = (value, money(value * rate, day < module.conversion))
-            result.append((day, booked_years[day][1]))
-        else:
+            booked_years[day] = (value, rate)
+            result.append((day, money(value * rate, day < module.conversion)))
+        else:  # one correction booking per policy, rounded once (public samples)
             correction = Decimal(0)
             for year_end, (value, old) in booked_years.items():
                 rate, _ = module.rates.rate('IT', 'BOL', year_end, row.TB_CHGTS)
-                new = money(value * rate, day < module.conversion)
-                booked_years[year_end], correction = (value, new), correction + new - old
-            result.append((day, correction))
+                booked_years[year_end], correction = (value, rate), correction + value * (rate - old)
+            result.append((day, money(correction, day < module.conversion)))
     return result

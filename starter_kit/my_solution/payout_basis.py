@@ -49,7 +49,7 @@ class PayoutBasis(TaxData):
 
     def german_base(self, policy, day, gain):
         """
-        Taxable part of a gain in Germany: less the partial exemption, and only half after 12 years from 60.
+        Taxable part of a gain in Germany: only half after 12 years from 60 (Neuron applied no partial exemption).
 
         Parameters:
         - policy (str): Policy number.
@@ -59,7 +59,7 @@ class PayoutBasis(TaxData):
         Returns:
         - Decimal: Taxable base.
         """
-        base = gain  # the partial exemption is not applied (public samples)
+        base = gain
         terms = self.policies[policy]
         applied = terms.PH_APPDT.date()
         age = HALF_INCOME['later age'] if applied >= HALF_INCOME['later from'] else HALF_INCOME['age']

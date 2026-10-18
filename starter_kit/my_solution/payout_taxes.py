@@ -36,9 +36,6 @@ class TaxModule(Withholding):
             event, day, known, _, share = payout
             address = self.residence.address(policy, day, known)
             country = address.AD_CNTRY
-            booked = self.booked[(policy, event)]
-            if booked and booked <= {'BOC', 'BOL'} and country != 'IT':
-                country = 'IT'  # M1 test: a mover whose only payout tax is Italian duty is reported as Italian
             base, withheld, surcharges, amounts = self.withholding(policy, payout, withdrawals, country, address.AD_REGIO)
             stamp = Decimal('0.00')
             if 'BOC' in self.booked[(policy, event)]:
@@ -46,18 +43,16 @@ class TaxModule(Withholding):
                 stamp = money(accrued * share, day < self.conversion)
                 collected += stamp
             reported = self.reported_tax(policy, payout, address) if country == 'CH' and not withheld else 0
-            if reported:  # the Swiss tax reported instead of withheld counts as Swiss tax (m3: annual +1)
+            if reported:  # the Swiss tax reported instead of withheld counts as Swiss tax in the annual table
                 yearly[(day.year, 'REPORTED')] += reported
-            if withheld + surcharges > 0:  # M2: every Swiss row on month end; Italy the 16th, Germany the 10th
-                remitted = end_of_next_month(day) if country == 'CH' else remittance_date(
-                    'DE' if country == 'IT' and day < self.conversion else country, day)  # M3 test: COBOL Italy on the 10th
-            else:
-                remitted = None
+            remitted = None  # Switzerland at the end of the next month, Italy on the 16th, Germany on the 10th
+            if withheld + surcharges > 0:
+                remitted = end_of_next_month(day) if country == 'CH' else remittance_date(country, day)
             if remitted:  # a deadline on a closed day moves to the next business day; in Switzerland 2 January is closed
                 remitted = calendar(self.data).next_business_day(remitted)
                 while country == 'CH' and (remitted.month, remitted.day) == (1, 2):
                     remitted = calendar(self.data).next_business_day(remitted + dt.timedelta(days=1))
-            for tax, amount in amounts.items():  # a withheld tax counts in the year it was remitted (public samples)
+            for tax, amount in amounts.items():  # a withheld tax counts in the year it was remitted
                 yearly[((remitted or day).year, tax)] += amount
             rows[event] = (country, base, withheld, surcharges, stamp, remitted)
             withdrawals.append((day, share))

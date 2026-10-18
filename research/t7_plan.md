@@ -81,6 +81,27 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## 09:20: the organisers published samples 1 and 2; m6 = rules fitted on them (main)
+
+The organisers released the targets of the first two leaderboard samples (public policies only, kept outside the repo
+in ~/Desktop/t7_samples_1_and_2). m4 scored 2/40 and 11/30 on sample 2 there (worse than m3). Fitted rules, each
+checked on both samples, no target values in the code:
+
+| Pattern | Neuron |
+|---|---|
+| Untaxed payout | CH: base = amount paid in CHF; elsewhere 0.00; never a date, also with Italian duty |
+| Reported Swiss tax | in the annual Swiss tax of the payout year; never on the payout row |
+| Remittance date | CH end of next month, IT 16th, DE 10th, each moved to the next business day (Swiss 2 January closed) |
+| Annual year of a withheld tax | the year it was remitted (a December payout counts in January) |
+| Italian substitute tax | each rate on the gain accrued while it was valid: policy value at 31.12.2011 and 30.6.2014 less the premium basis then, for the units sold; rounded once |
+| German tax | KST = base x 25 % / (1 + 25 % x church rate); SOL, KIS on the KST; cents cut off; no partial exemption |
+| Italian duty at a surrender | days up to and including the payout day over the days of that year |
+| 2019 duty correction | one booking per policy, rounded once |
+
+Result: sample 2 payout 40/40, annual 30/30; sample 1 payout 19/20 (one base off by a cent after two withdrawals, one
+of them in the COBOL era), annual 20/20. Dropped as unsupported: movers reported as IT, COBOL Italy on the 10th, the
+m4 tests. m6 is the final unless a new sample shows more.
+
 ## 08:10: m3 scored payout 2/40, annual 12/30 (77.85 %, best); m4 is main
 
 Annual 12: m3 changed no existing annual row, so at least one of the 867 rows of reported Swiss tax is right: the
