@@ -81,6 +81,23 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## 09:50: m6 scored payout 10/40, annual 29/30 (88.80 %); m7 = m6 + the Swiss law date (main)
+
+The leaderboard never left sample 2: for e8, s-simple, c3, c4 and m1 the leaderboard annual count equals the local
+sample-2 count exactly. Its payout count, however, equals the number of *dated* rows we get right locally (e8 0, s 0,
+c3 1, c4 0, m1 1, m3 2), never the undated ones (e8 has 23 locally, 0 on the board). m6: 8 dated + 2 undated = 10; the
+2 are the only undated rows whose values were new in m6 (the Italian duty at a surrender, BL10000489/548 and
+BL10001679/177); the other 30 had identical values in earlier uploads that scored 0 there. So the server does not
+credit undated rows that match the published targets: a difference on the server side, not a rule we can learn.
+Mortis' 84.40 % fits about 10/40 payout + 20/30 annual, so the other teams meet the same ceiling.
+
+m7: Swiss withholding tax 30 days after the end of the month (Art. 16 VStG), then the next business day, instead of
+the end of the next month. Both rules give the same six Swiss dates in samples 1-2 (each a weekend shift), they
+differ for 115 payouts (events in 8 of 12 months). The earlier Swiss hits under "end of next month" (group 0) or
+"quarter end + 30" (group 3) are also consistent with the law date. Samples 1-2 unchanged (40/40, 30/30, 19/20, 20/20).
+Not taken: dates from the payment day (law, PD_PAYDAY hint), no sample row has its payment in another month, so it
+cannot be checked, and it would move 19 % of the dated rows.
+
 ## 09:20: the organisers published samples 1 and 2; m6 = rules fitted on them (main)
 
 The organisers released the targets of the first two leaderboard samples (public policies only, kept outside the repo

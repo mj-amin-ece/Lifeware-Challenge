@@ -32,6 +32,11 @@ def end_of_next_month(day):
     return day.replace(day=1) + relativedelta(months=2) - dt.timedelta(days=1)
 
 
+def month_end_plus_30(day):
+    """Swiss withholding tax on insurance benefits is due 30 days after the end of the month of the payout."""
+    return day.replace(day=1) + relativedelta(months=1) - dt.timedelta(days=1) + dt.timedelta(days=30)
+
+
 def remittance_date(country, day):
     """Day a tax withheld on `day` was paid to the tax office.
     Parameters: country (str): Country whose tax office gets the money; day (datetime.date): Day of the payout.

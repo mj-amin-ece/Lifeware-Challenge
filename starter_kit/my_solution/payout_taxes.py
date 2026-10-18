@@ -15,7 +15,7 @@ from decimal import Decimal
 from business_calendar import calendar
 from rules import money
 from stamp_duty import stamp_duty
-from tax_rules import end_of_next_month, remittance_date
+from tax_rules import month_end_plus_30, remittance_date
 from withholding import Withholding
 
 
@@ -45,9 +45,9 @@ class TaxModule(Withholding):
             reported = self.reported_tax(policy, payout, address) if country == 'CH' and not withheld else 0
             if reported:  # the Swiss tax reported instead of withheld counts as Swiss tax in the annual table
                 yearly[(day.year, 'REPORTED')] += reported
-            remitted = None  # Switzerland at the end of the next month, Italy on the 16th, Germany on the 10th
+            remitted = None  # Switzerland 30 days after the end of the month, Italy on the 16th, Germany on the 10th
             if withheld + surcharges > 0:
-                remitted = end_of_next_month(day) if country == 'CH' else remittance_date(country, day)
+                remitted = month_end_plus_30(day) if country == 'CH' else remittance_date(country, day)
             if remitted:  # a deadline on a closed day moves to the next business day; in Switzerland 2 January is closed
                 remitted = calendar(self.data).next_business_day(remitted)
                 while country == 'CH' and (remitted.month, remitted.day) == (1, 2):
