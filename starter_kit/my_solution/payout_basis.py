@@ -1,14 +1,9 @@
 """Premium basis and German adjustments used to report a payout gain."""
-import datetime as dt
 from decimal import Decimal
 
-from dateutil.relativedelta import relativedelta
 
 from rules import money
 from tax_data import TaxData
-
-
-HALF_INCOME = {'held': 12, 'age': 60, 'later age': 62, 'from': dt.date(2005, 1, 1), 'later from': dt.date(2012, 1, 1)}
 
 
 class PayoutBasis(TaxData):
@@ -49,7 +44,9 @@ class PayoutBasis(TaxData):
 
     def german_base(self, policy, day, gain):
         """
-        Taxable part of a gain in Germany: only half after 12 years from 60 (Neuron applied no partial exemption).
+        Taxable part of a gain in Germany: the whole gain. The insurer withholds on the full difference even when only
+        half of it is taxable (the half-income rule is applied in the customer's tax return, section 43 (1) 4 EStG),
+        and Neuron applied no partial exemption either.
 
         Parameters:
         - policy (str): Policy number.
@@ -59,12 +56,4 @@ class PayoutBasis(TaxData):
         Returns:
         - Decimal: Taxable base.
         """
-        base = gain
-        terms = self.policies[policy]
-        applied = terms.PH_APPDT.date()
-        age = HALF_INCOME['later age'] if applied >= HALF_INCOME['later from'] else HALF_INCOME['age']
-        if (applied >= HALF_INCOME['from'] and relativedelta(day, terms.PH_BEGDT.date()).years >= HALF_INCOME['held']
-                and relativedelta(day, self.residence.birth(policy, day)).years >= age):
-            share, _ = self.rates.rate('DE', 'HEV', day)
-            base *= share or 1
-        return money(base, day < self.conversion)
+        return money(gain, day < self.conversion)
