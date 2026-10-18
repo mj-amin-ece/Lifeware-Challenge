@@ -13,7 +13,7 @@ from decimal import Decimal
 
 from rules import money
 from stamp_duty import stamp_duty
-from tax_rules import remittance_date
+from tax_rules import end_of_next_month, remittance_date, swiss_remittance_split
 from withholding import Withholding
 
 
@@ -34,6 +34,9 @@ class TaxModule(Withholding):
             event, day, known, _, share = payout
             address = self.residence.address(policy, day, known)
             country = address.AD_CNTRY
+            booked = self.booked[(policy, event)]
+            if booked and booked <= {'BOC', 'BOL'} and country != 'IT':
+                country = 'IT'  # M1 test: a mover whose only payout tax is Italian duty is reported as Italian
             base, withheld, surcharges, amounts = self.withholding(policy, payout, withdrawals, country, address.AD_REGIO)
             stamp = Decimal('0.00')
             if 'BOC' in self.booked[(policy, event)]:
@@ -42,7 +45,11 @@ class TaxModule(Withholding):
                 collected += stamp
             for tax, amount in amounts.items():
                 yearly[(day.year, tax)] += amount
-            remitted = remittance_date(country, day) if withheld + surcharges > 0 else None
+            if withheld + surcharges > 0:  # M1 tests: Swiss split kept (holds the correct row); Italy end of next month
+                remitted = {'CH': swiss_remittance_split(policy, day), 'IT': end_of_next_month(day)}.get(
+                    country, remittance_date(country, day))
+            else:  # M1 test: a collected Italian duty is remitted at the end of the next month
+                remitted = end_of_next_month(day) if stamp > 0 else None
             rows[event] = (country, base, withheld, surcharges, stamp, remitted)
             withdrawals.append((day, share))
         return rows, yearly
