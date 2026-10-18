@@ -81,6 +81,19 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## 02:40: the simplest model (s-simple), the 02:51 upload
+
+Every upload on the 40-case sample carried refinements no example or booking proves. A row passes only if all six
+fields match, so if Neuron's module is simpler, each refinement can only break rows. s-simple keeps only what the
+examples and bookings prove: the payout as booked, each rate exactly as the table gives it on the payout day (TFS
+and HEV included), surcharges a plain percentage of the tax, the law dates from the payout day, base 0.00 when
+nothing is withheld, the Italian duty as before. Versus main: 253 payout and 245 annual rows differ; t0-t5 and
+both examples unchanged.
+
+Reading: payout > 0 or annual > 11 means the refinements were hurting; then build up again from s-simple, one
+evidence-backed change at a time. Unchanged means complexity is not the blocker; then d2 (the 10th, first-year
+duty) comes next.
+
 ## 02:15: data-backed changes only, three candidates left
 
 Rule from now on: a change goes into an upload only if the data supports it (a booking pattern, the organisers'
