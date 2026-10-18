@@ -1,0 +1,15 @@
+[
+  "Hi! We are team NAMA from U S I, and this is the Neuron Migration.",
+  "NeuralWave Life must move five thousand insurance policies off Neuron, a thirty-year-old system with no source code left. Every value has to match, to the cent and to the day.",
+  "So we treated it as detective work. A I finds the pattern, and plain Python code is the answer an auditor can check.",
+  "One loop: write the simplest rule, mark the values it gets wrong, and ask generic tools why. A decision tree shows where a rule breaks, and a change-point finder shows when.",
+  "Our biggest finding: Neuron is really two systems. Before August 2007, the old COBOL code cut off the cents and counted days differently.",
+  "Ignore that switch, and every number from the old era breaks.",
+  "On the public leaderboard, tasks zero to two are perfect, three and four are above ninety-nine point nine percent, and our average is eighty-eight point eight percent.",
+  "Then came the surprise: a tax audit with no answers. We used Neuron's own tax bookings as labels, tested rules on the leaderboard, and fitted one rule per mismatch.",
+  "Every wrong row pointed to one rule: deadlines on the next business day, church tax in Germany, and an Italian tax split by rate period.",
+  "Here, Italy taxes each part of the gain at the rate of its own period: eight hundred forty-seven euros, not thirteen hundred fifty-six.",
+  "The annual tax table went from eleven to twenty-nine of thirty rows.",
+  "And where no sample shows a case, the rule follows Swiss, Italian and German law.",
+  "Rules as code, ready for the next migration. Thank you!"
+]
