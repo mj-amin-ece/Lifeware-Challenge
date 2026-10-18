@@ -77,4 +77,7 @@ def t7_tax_payout(legacy_dir) -> dict[tuple[str, int], tuple]:
 
 def t7_tax_annual(legacy_dir) -> dict[tuple[str, int], tuple[Decimal, ...]]:
     """{(policy_id, year): (ch_stp, ch_vst, it_sos, it_bol, de_kst, de_sol, de_kis)}, years with an amount only"""
-    return tax_results(load(legacy_dir))[1]
+    annual = tax_results(load(legacy_dir))[1]
+    # PROBE (one upload only): leave out the rows whose only amount is the Italian duty, so the annual count shows how
+    # many of the correct rows are in the other categories
+    return {key: row for key, row in annual.items() if any(row[:3]) or any(row[4:])}

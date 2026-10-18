@@ -32,11 +32,7 @@ def swiss_remittance_split(policy, day, paid):
     Parameters: policy (str): Policy number; day (datetime.date): Day of the payout; paid (datetime.date): Day paid.
     Returns (datetime.date): Remittance date of the group's rule.
     """
-    group = int(policy[2:]) % 4
-    if group in (0, 1):  # C5: the end of the next month, for half of the policies
-        return day.replace(day=1) + relativedelta(months=2) - dt.timedelta(days=1)
-    quarter_end = dt.date(day.year, (day.month - 1) // 3 * 3 + 3, 1) + relativedelta(months=1) - dt.timedelta(days=1)
-    return quarter_end + dt.timedelta(days=30)  # C5: 30 days after the end of the quarter, for the other half
+    return day.replace(day=1) + relativedelta(months=2) - dt.timedelta(days=1)  # C7: the end of the next month, every Swiss payout
 
 
 def remittance_date(country, day, cobol=False):
@@ -46,8 +42,6 @@ def remittance_date(country, day, cobol=False):
     Returns (datetime.date): Remittance date.
     """
     next_month = day.replace(day=1) + relativedelta(months=1)
-    if cobol and country == 'IT':
-        return next_month.replace(day=10)
     if country in REMITTANCE_DAY:
         return next_month.replace(day=REMITTANCE_DAY[country])
     return next_month - dt.timedelta(days=1) + dt.timedelta(days=CH_REMITTANCE_DAYS)
