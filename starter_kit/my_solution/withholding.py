@@ -4,9 +4,10 @@
   less the premiums paid, each one
   converted on the day it was received (and reduced by the shares already withdrawn), times the share now withdrawn.
 - CH: withholding tax (VST) on the whole payout in CHF.
-- IT: substitute tax (SOS) on the gain.
-- DE: capital gains tax (KST) on the gain, less the partial exemption (TFS) from 2018 and only half of it (HEV) after
-  12 years and from the age of 60 (62 from 2012); solidarity surcharge (SOL) and church tax (KIS) on the KST.
+- IT: substitute tax (SOS) on the gain, each rate on the part accrued while it was valid (policy value at the changes).
+- DE: capital gains tax (KST) on the gain, only half of it (HEV) after 12 years and from the age of 60 (62 from 2012),
+  reduced by church tax (base x rate / (1 + rate x church rate)); solidarity surcharge (SOL) and church tax (KIS) on the
+  KST; German cents are cut off.
 """
 from payout_basis import HALF_INCOME, PayoutBasis
 from decimal import Decimal
@@ -84,11 +85,11 @@ class Withholding(PayoutBasis):
         rate, _ = self.rates.rate('IT', 'SOS', day, known)
         return tax + rate * (gain - before)
 
-    def reported_tax(self, policy, payout, address, threshold=True):
+    def reported_tax(self, policy, payout, address):
         """Swiss tax on a payout above the threshold of a holder who did not object: reported, not withheld."""
         _, day, known, _, _ = payout
         rate, limit = self.rates.rate('CH', 'VST', day, known)
         amount = self.convert(self.amount_paid(policy, payout), policy, 'CH', day)
-        if address.AD_TAXST == 'E' or rate is None or (threshold and amount <= limit):
+        if address.AD_TAXST == 'E' or rate is None or amount <= limit:
             return Decimal('0.00')
         return money(amount * rate, day < self.conversion)

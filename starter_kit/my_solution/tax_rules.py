@@ -32,14 +32,6 @@ def end_of_next_month(day):
     return day.replace(day=1) + relativedelta(months=2) - dt.timedelta(days=1)
 
 
-def swiss_remittance_split(policy, day):
-    """M1: the two Swiss rules that hold the correct row, each for half of the policies (policy number modulo 4)."""
-    if int(policy[2:]) % 4 in (0, 1):
-        return end_of_next_month(day)
-    quarter_end = dt.date(day.year, (day.month - 1) // 3 * 3 + 3, 1) + relativedelta(months=1) - dt.timedelta(days=1)
-    return quarter_end + dt.timedelta(days=30)
-
-
 def remittance_date(country, day):
     """Day a tax withheld on `day` was paid to the tax office.
     Parameters: country (str): Country whose tax office gets the money; day (datetime.date): Day of the payout.
