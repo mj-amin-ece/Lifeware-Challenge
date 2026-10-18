@@ -81,6 +81,27 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## 07:40: m3 replaces m2 as main (law and vocabulary, free tests)
+
+m1 scored payout 1/40, annual 11/30 (77.01 %): its four new ideas added nothing. Leaderboard at 06:51 (average of
+t0-t4 and the two t7 counts, so 7 parts): Mortis 84.40 % (about 90 t7 points), Legal Immigrants 77.86 % (payout
+about 3-4/40), Fable 76.19 % (0/40 + 10/30). Every team sits near 10-11/30 on the annual side; the gap is in payouts.
+
+Checked against the law: the rate table follows the real history (CH stamp duty 2.5 % from 1 April 1998, IT 12.5 /
+20 / 26 %, SOL 7.5 / 5.5 %, KIS with the flat tax of 2009); the one deviation, the Italian duty of 0.15 % for 2017 to
+mid-2019, is the patch corrected in July 2019 (TAXFIX19). Rejected locally: the substitute tax on the gain after the
+collected duty (1 booking contradicts). Not taken: the Italian duty minimum of 34.20 for 2012-2013 (278 annual rows;
+the rate table has no threshold for it).
+
+m3 = m2 without the probe, plus:
+- **Reported Swiss tax (annual, free):** the task says the annual table holds what Neuron "withheld, accrued or
+  reported", and TAXST M means "reported to the tax office". 887 Swiss payouts above 5,000 had no objection; their 8 %
+  goes into ch_vst for the 867 policy years that have no row yet. Existing rows are untouched, so the count cannot
+  fall: annual > 11 means reported tax belongs in the annual table (then also add it to the 20 existing years).
+- **Business days (payout):** IT (16th) and DE (10th) deadlines on a weekend or a learned holiday move to the next
+  business day, as the law of both countries says (122 dates). No IT/DE row ever passed, so nothing can be lost.
+- Swiss rows: all on the end of the next month (the m2 decision): payout 0 means the quarter rule.
+
 ## 06:55: m1 replaces c7 as main (only untested ideas)
 
 Rule from the team: test only ideas never scored; drop tested ideas that did not improve the score. m1 = the user's
