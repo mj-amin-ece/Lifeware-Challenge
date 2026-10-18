@@ -6,16 +6,14 @@ separately. Italian duty accruals and duty already collected are tracked across
 payouts; earlier withdrawals also reduce the premium basis of later gains.
 
 Each payout returns country, base, withholding, surcharges, stamp duty and
-remittance date (None if nothing was withheld; counted from the day the money was
-paid, PD_PAYDAY business days after the event). Annual movements retain their
-individual tax-type amounts.
+remittance date (None if nothing was withheld). Annual movements retain their individual tax-type amounts.
 """
 from collections import defaultdict
 from decimal import Decimal
 
 from rules import money
 from stamp_duty import stamp_duty
-from tax_rules import remittance_date, swiss_remittance_split
+from tax_rules import remittance_date
 from withholding import Withholding
 
 
@@ -44,11 +42,7 @@ class TaxModule(Withholding):
                 collected += stamp
             for tax, amount in amounts.items():
                 yearly[(day.year, tax)] += amount
-            if withheld + surcharges > 0:
-                remitted = (swiss_remittance_split(policy, day, self.payment_day(policy, day)) if country == 'CH'
-                            else remittance_date(country, day, day < self.conversion))
-            else:  # C3: as the first scored versions, a collected Italian duty is remitted on the Italian date
-                remitted = remittance_date('IT', day, day < self.conversion) if stamp > 0 else None
+            remitted = remittance_date(country, day) if withheld + surcharges > 0 else None
             rows[event] = (country, base, withheld, surcharges, stamp, remitted)
             withdrawals.append((day, share))
         return rows, yearly

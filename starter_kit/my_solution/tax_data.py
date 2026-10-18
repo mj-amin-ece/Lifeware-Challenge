@@ -3,9 +3,6 @@
 Which taxes Neuron booked for a payout or a year is in its tax bookings (NRTAXB, without amounts); the classes built on
 TaxData calculate the amounts (withholding.py, taxes.py). Amounts are rounded to the cent by system era: cut off by the
 COBOL system, half up by Neuron NG.
-
-Neuron taxed what the customer received: a withdrawal or surrender less the surrender penalty of the scale (the Swiss
-threshold of CHF 5,000 is met by the net amount in every booking), a death claim as the death benefit of the option.
 """
 from collections import defaultdict
 from decimal import Decimal
@@ -13,7 +10,6 @@ from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 
 from accounting import ORDER_TYPES, ignored_events
-from business_calendar import calendar
 from market import Market
 from policies import policy_base
 from risk import sum_at_risk
@@ -48,53 +44,32 @@ class TaxData:
         self.premiums = defaultdict(list)
         for row, amount in zip(premiums.itertuples(), data.exact(premiums.PR_AMTRC)):
             self.premiums[row.PR_POLNR].append((row.PR_RCVDT.date(), amount, row.PR_EVTNR))
+        events = data.table('NREVNT')
+        payouts = events[events.EV_EVTTP.isin(PAYOUT_EVENTS)]
+        self.event_types = dict(zip(zip(payouts.EV_POLNR, payouts.EV_EVTNR), payouts.EV_EVTTP))
         self.values = {}
-        self.stamp_values = {}
-        # A payout is paid PD_PAYDAY business days after its event; the taxes withheld are due by the month paid
-        self.calendar, payout_days = calendar(data), data.table('NRPROD').set_index('PD_PRDCD').PD_PAYDAY.to_dict()
-        self.payout_days = {policy: int(payout_days[terms.PH_PRDCD]) for policy, terms in self.policies.items()}
 
-    def payment_day(self, policy, day):
+    def amount_paid(self, policy, payout):
+        """Customer benefit in policy currency, distinct from the value of the units sold.
+
+        The scale, completed policy years and waiver periods are shared with t3.
+        On death, add the insured part defined by the tariff option in SCHEMA.md.
+        Payout tuples retain the fund value used for stamp-duty accruals.
         """
-        Day the money of a payout left the company: the product's number of business days after the event.
-
-        Parameters:
-        - policy (str): Policy number.
-        - day (datetime.date): Effective date of the payout.
-
-        Returns:
-        - datetime.date: Payment day.
-        """
-        return self.calendar.add_business_days(day, self.payout_days[policy])
-
-    def amount_paid(self, policy, event_type, day, sold):
-        """
-        What the customer received for the units sold: less the surrender penalty, or plus the sum at risk on death.
-
-        Parameters:
-        - policy (str): Policy number.
-        - event_type (int): 400 withdrawal, 410 surrender, 500 death claim.
-        - day (datetime.date): Day of the payout.
-        - sold (Decimal): Value of the units sold, in the policy currency.
-
-        Returns:
-        - Decimal: Amount paid in the policy currency, rounded by system era.
-        """
+        event, day, _, sold, _ = payout
         terms = self.policies[policy]
-        if event_type == DEATH:
+        if self.event_types[(policy, event)] == DEATH:
             return money(sold + sum_at_risk(terms.OPTION, sold, terms.RK_SUMIN), day < self.conversion)
         years = relativedelta(day, terms.PH_BEGDT.date()).years
-        return money(sold * (1 - Decimal(penalty_rate(self.data, terms.PD_SRPSCL, years, day))), day < self.conversion)
+        rate = penalty_rate(self.data, terms.PD_SRPSCL, years, day)
+        return money(sold * (1 - rate), day < self.conversion)
 
     def payouts(self):
         """
         Every payout that counts: withdrawals, surrenders and death benefits that were not reversed.
 
-        Also keeps `stamp_values`: the policy value a payout's stamp duty is based on (what was paid, on death the
-        value of the units).
-
         Returns:
-        - dict: {policy: [(event, day, processed at, amount paid in policy currency, share of units sold)]}, by event.
+        - dict: {policy: [(event, day, processed at, amount in policy currency, share of units sold)]}, by event.
         """
         events = self.data.table('NREVNT')
         events = events[events.EV_EVTTP.isin(PAYOUT_EVENTS)].sort_values('EV_EVTNR')
@@ -109,14 +84,13 @@ class TaxData:
             if key in ignored:
                 continue
             share = Decimal(1) if row.EV_PCTG != row.EV_PCTG else Decimal(str(row.EV_PCTG))
-            day = row.EV_EFFDT.date()
-            sold = totals.get(key, Decimal(0))  # a surrender without units (every premium returned) pays nothing
-            paid = self.amount_paid(row.EV_POLNR, int(row.EV_EVTTP), day, sold)
-            self.stamp_values[key] = sold if int(row.EV_EVTTP) == DEATH else paid
-            payouts[row.EV_POLNR].append((int(row.EV_EVTNR), day, row.EV_CHGTS, paid, share))
+            # A valid surrender can have no units after every premium was returned.
+            # It still has a required payout row; an insured death benefit may also
+            # exist independently of the fund balance.
+            payouts[row.EV_POLNR].append((int(row.EV_EVTNR), row.EV_EFFDT.date(), row.EV_CHGTS, totals[key], share))
         return payouts
 
-    def convert(self, amount, policy, country, day, calculated_on=None):
+    def convert(self, amount, policy, country, day):
         """
         Convert an amount of the policy currency into the tax currency of a country, rounded by system era.
 
@@ -124,15 +98,13 @@ class TaxData:
         - amount (Decimal): Amount in the policy currency.
         - policy (str): Policy number.
         - country (str): Country of the tax.
-        - day (datetime.date): Day whose exchange rate converts.
-        - calculated_on (datetime.date): Day the system did the conversion, which decides the rounding (the tax
-          currency is only known at the payout, so old premiums are converted then); default `day`.
+        - day (datetime.date): Day of the conversion.
 
         Returns:
         - Decimal: Amount in the tax currency.
         """
         rate = self.market.rate(self.policies[policy].PH_CCY, day) / self.market.rate(tax_currency(country), day)
-        return money(amount * rate, (calculated_on or day) < self.conversion)
+        return money(amount * rate, day < self.conversion)
 
     def policy_value(self, policy, day):
         """Value of a policy on `day` in its currency (the valuation of t3), cached per day."""
