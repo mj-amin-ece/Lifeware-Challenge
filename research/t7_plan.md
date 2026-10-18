@@ -81,6 +81,20 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## 03:05: what the simple model taught, and the 03:51 upload (c3, = main)
+
+s-simple scored payout 0/40, annual 8/30 (main: 11/30). The four refinements added between e7-payday and main left the
+annual count at 11, so the drop comes from the one refinement every sample-2 upload shared: the payout taxed net of
+the surrender penalty (death benefit on deaths). It touches 100 annual rows (47 Swiss withholding, 27 Italian duty,
+11 Italian substitute tax, 15 German); at least 3 are in the sample and right under main. Such rows are 1.6 % of all
+annual rows, so the annual sample is curated toward payouts. The Swiss allowance idea would break them: dropped.
+
+If the Swiss amounts are right, a Swiss taxed payout fails only on its date. c3 (main from now on) therefore splits
+the Swiss taxed rows into four fixed groups (policy number modulo 4), one untested date rule each:
+0 end of the next month, 1 day paid + 30 days, 2 payout + 30 days, 3 quarter end + 30 days. It also dates collected
+Italian duty again (the behaviour of the first scored versions, never re-tested on sample 2), and charges the first
+policy year of the Italian duty pro rata (418 annual rows). A payout rise is attributed by group next slot.
+
 ## 02:40: the simplest model (s-simple), the 02:51 upload
 
 Every upload on the 40-case sample carried refinements no example or booking proves. A row passes only if all six
