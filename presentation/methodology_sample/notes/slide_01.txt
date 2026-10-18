@@ -1,0 +1,11 @@
+Recover rules. Build evidence. Reuse the method.
+TIME: 0:00–0:15
+
+SAY:
+Our approach is a reusable discovery loop. We start with a readable rule, use the mismatches to guide experiments, and turn supported findings into deterministic Python. AI helps investigate; exact comparisons decide what we keep.
+
+CUE:
+Face camera; then bring up the three-step stack.
+
+SUPPORT / EVIDENCE (not spoken):
+Opening goes directly to our approach: assume the jury knows the challenge. Assistants used in development include Claude Code and Codex; the submitted calculations are deterministic. This is a human-guided toolkit, not autonomous recovery of arbitrary formulas.

@@ -1,0 +1,11 @@
+Turn each mismatch into an experiment.
+TIME: 0:15–0:35
+
+SAY:
+A dictionary-driven loader gives us consistent inputs. We write a baseline, then ask where, when and how it fails. Trees identify conditions; change-point and residual tools suggest conventions. We test alternatives and rerun dependent tasks before integrating a rule.
+
+CUE:
+Trace the loop left to right; emphasize testing rather than hypothesis generation alone.
+
+SUPPORT / EVIDENCE (not spoken):
+Actual tools: legacy_loader.py, tools/rule_finder.py, tools/change_points.py, tools/residuals.py, tools/convention_search.py. The tree classifies mismatches; it does not establish the true formula. Convention search enumerates supplied candidate sets. Humans select features, propose candidates and assess evidence.

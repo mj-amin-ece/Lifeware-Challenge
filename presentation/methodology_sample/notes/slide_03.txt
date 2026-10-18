@@ -1,0 +1,11 @@
+Find where the system changed.
+TIME: 0:35–0:58
+
+SAY:
+Applying newer conventions to older policies creates a strong historical pattern. Change-point analysis directs us to the conversion; we then test rounding, age and day-count candidates. The result is a dated rule with evidence. Both curves here show T4 training statements.
+
+CUE:
+Point to the older era, then to persistent errors after conversion. Explain carry-forward effects briefly.
+
+SUPPORT / EVIDENCE (not spoken):
+Source: methodology_sample/era_evidence.csv. Red is the recorded T4 Neuron NG-only experiment from Plots/errors_by_era.csv. Teal is recalculated from the verified latest T4 snapshot and all 34,145 local training rows, with21 mismatches. This is local training evidence, not private accuracy or a fresh NG-only ablation of the final candidate. The annual plot motivates inspecting an era boundary; it does not independently identify the exact day. Current rules use conversion2007-08-11. Residual rates are small but not universally zero.

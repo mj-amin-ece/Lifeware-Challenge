@@ -1,0 +1,12 @@
+Keep local evidence separate from hidden scores.
+TIME: APPENDIX
+SUPPORTING SLIDE — skipped in the two-minute presentation.
+
+SAY:
+Use only for follow-up questions.
+
+CUE:
+
+
+SUPPORT / EVIDENCE (not spoken):
+Scores copied from .cache/t7-trace-rebase/after.log. Denominators include the observed local mismatches; do not assert all unlisted misses are confirmed manual corrections. T5 is a set of55 flags, not a measured hidden F1. T6 has29 regression checks, which do not constitute a jury score. Snapshot comparison covers 6,782,289 booking digests and22,393 unit histories. T7 current overlay changes7 stamp values, preserves6381 annual rows, and passes27 synthetic tests. MI82.5 versus updated-main82.9. Three-run median T7 wall23.720 vs23.633s; peak RSS1779.55 vs1779.02MiB.
