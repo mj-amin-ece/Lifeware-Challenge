@@ -101,6 +101,17 @@ m3 = m2 without the probe, plus:
 - **Business days (payout):** IT (16th) and DE (10th) deadlines on a weekend or a learned holiday move to the next
   business day, as the law of both countries says (122 dates). No IT/DE row ever passed, so nothing can be lost.
 - Swiss rows: all on the end of the next month (the m2 decision): payout 0 means the quarter rule.
+- **Untaxed bases (payout, free; added 07:40):** no untaxed row ever scored under 0.00 or the natural base, so
+  untaxed rows outside Switzerland report the amount paid in EUR (IT 248, DE 194, LU 153) and Swiss untaxed rows with
+  a surrender penalty report the value before it (450; without a penalty 0.00 stays).
+- **Era split for Italy (payout, free):** COBOL-era Italian taxes on the 10th like the German example (20 rows).
+
+Distribution mismatch: the sample is picked by pattern (36 cells: country x taxed x event x era), so ideas are ranked
+by cells reached; untaxed rows are 15 of 36 cells, which fits the about 20 rows the leader gets more than us. Every
+cell but the Swiss taxed rows of the hit never scored, so changes there are free. Reading m3: payout 0 = Swiss
+quarter rule; payout >= 2 = one of the free changes hit (attribute in m4 by groups); annual > 11 = reported tax.
+Next for m4: the Italian duty in the surrender year by Neuron's own day counts (months / 12 in NG, days / 360 in
+COBOL, today days / 365), alone on the annual side.
 
 ## 06:55: m1 replaces c7 as main (only untested ideas)
 
