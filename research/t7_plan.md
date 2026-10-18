@@ -95,8 +95,18 @@ m4 = m3 plus:
   number modulo 4: 0 days / 365 (today), 1 days + 1 / 365, 2 completed months / 12 (Neuron NG charges by the month),
   3 30/360 days (COBOL charges). Only the duty column of 93 payouts changes (groups 1-3), the annual table keeps
   days / 365, so it is free and attributes itself by group.
+- Reported tax on the payout row (08:30, from the m3 result: Neuron counts reported tax as Swiss tax, so its payout
+  rows probably carry it too): the 737 reported payouts without a penalty (only ever scored with withholding 0.00)
+  show base = the net payout in CHF and withholding = 8 %, without a date (groups 0-1, 383 rows: nothing was paid to
+  the tax office) or on the Swiss date (groups 2-3, 354 rows). Free.
+- Italian payments due on 16 August wait until the 20th from 2012 (the August extension), 13 rows. Free.
+- Reported tax below 5,000 only as years without a row (374 rows); an extra row never counts. Free.
 
-Reading: payout > 2 = a day count hit (group named next slot); annual > 12 = one of the 11 years.
+Rule from the team: keep what the scores proved, extend it, and put every free test into the same upload. All 840
+changed payout rows and 385 annual rows are explained by the ideas above; nothing else moves.
+
+Reading: payout > 2 = reported payout rows (group gives the date), a day count (group) or August; annual > 12 = the
+11 years or the small reported rows. Final: keep m3, keep each idea whose upload rose.
 
 ## 07:40: m3 replaces m2 as main (law and vocabulary, free tests)
 
