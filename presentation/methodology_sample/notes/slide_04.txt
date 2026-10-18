@@ -1,0 +1,11 @@
+Use the error shape to propose a formula.
+TIME: 0:58–1:18
+
+SAY:
+Residuals also suggest formulas. This illustrative thirty-one-day charge is about three percent above a fixed monthly charge, suggesting actual-days over three-sixty. Our search tests competing day counts and rounding modes against real diagnostics. A plausible signature still needs exact validation.
+
+CUE:
+Point from the 1.033 ratio to the proposed day count; do not describe the toy amounts as measured outcomes.
+
+SUPPORT / EVIDENCE (not spoken):
+Illustration: value 10,000, annual rate 1%, elapsed period 31 days. Fixed month: 10,000×0.01/12=8.3333…; Actual/360: 10,000×0.01×31/360=8.6111…. Ratio of unrounded values=31/30=1.03333…. Displayed 8.33 and 8.61 use half-up cents for illustration; the historical era can use truncation. These are not observed policy outputs. Source tools: residuals.implied_ratios, convention_search.search, date_conventions.py.

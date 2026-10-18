@@ -1,0 +1,12 @@
+Show what supported each decision.
+TIME: APPENDIX
+SUPPORTING SLIDE — skipped in the two-minute presentation.
+
+SAY:
+Use only for follow-up questions.
+
+CUE:
+
+
+SUPPORT / EVIDENCE (not spoken):
+AI usage: Claude Code and Codex assisted coding, experiments, review, documentation and presentation preparation. Team members set direction, selected candidate hypotheses and assessed results. Record actual usage accurately; the existing report records organizer clarification on coding-assistant use for T7, which should be retained only if the team can substantiate it. No language model is invoked by the submitted task entry points. Evidence sources: challenge PDFs; tools/*.py; Plots/errors_by_era.csv; research/t7_version2_experiments.md; research/t7_trace.md; local diagnostic JSON and verification logs. The slide4 calculation is explicitly illustrative. Freeze final metrics against the actual submitted code before recording.

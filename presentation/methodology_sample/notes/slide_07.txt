@@ -1,0 +1,12 @@
+The reusable toolkit has explicit inputs.
+TIME: APPENDIX
+SUPPORTING SLIDE — skipped in the two-minute presentation.
+
+SAY:
+Use only for follow-up questions.
+
+CUE:
+
+
+SUPPORT / EVIDENCE (not spoken):
+These are the current source APIs, not an invented autonomous agent architecture. Convention candidates and residual signatures include supplied insurance/date conventions, even though the search/ranking engine is reusable. LLMs accelerate development and hypothesis generation; exact comparison does not by itself prove unseen-data correctness.

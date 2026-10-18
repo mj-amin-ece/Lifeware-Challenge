@@ -1,0 +1,11 @@
+New target. Same investigative tools.
+TIME: 1:38–1:55
+
+SAY:
+For another target, we supply new features, candidate formulas and evidence. We reuse the analysis, searches and validation process. Local T0-to-T4 scores exceed ninety-nine point seven percent. Our contribution is a reusable, human-guided method, with clear boundaries around verified results.
+
+CUE:
+Close on the transfer argument. Supporting slides are skipped during the two-minute talk.
+
+SUPPORT / EVIDENCE (not spoken):
+Local train scores from the full regression: T0 225848/225858, T1 15028/15028, T2 3011/3019, T3 6137/6153, T4 34124/34145. These are not private results. T7 last reported evaluated versions 1/20 payout and 15/20 annual; latest TRACE overlay is unscored. Generality is demonstrated across targets within this challenge, not across arbitrary unseen industries. Decoder formats and relationship browsers require adapters. Maintainability latest local82.5, wall/RSS overhead documented in t7_trace.md.

@@ -1,0 +1,27 @@
+{
+  "main_slides": 6,
+  "supporting_slides": 3,
+  "narration_words": 238,
+  "planned_seconds": 115,
+  "sources_sha256": {
+    "Plots/errors_by_era.csv": "568df1c762f7ab5e0bd85cada88eb96c8e004eb4ef9b157ba8e056c4474b636e",
+    "presentation/methodology_sample/era_evidence.csv": "5fbb69135688f61340e7cb22bd743fe5d893659822c15e5255141b914210b80a",
+    "research/t7_version2_experiments.md": "29721d349a15fb004d2cd0073cdcdb28a1d5e8a4c8805d2d80221189117e77f4",
+    "research/t7_trace.md": "58b058ab632c28581204c7cf1f8ec5bb8839ec3c0cf465aa04f71e0f649c6e5a"
+  },
+  "native_keynote_verified": true,
+  "keynote_roundtrip": {
+    "slides": 9,
+    "slides_with_preserved_notes": 9,
+    "skipped_supporting_slides": 3,
+    "pdf_pages": 9
+  },
+  "artifact_sha256": {
+    "NAMA_Methodology_Keynote_Export.pdf": "0df89f505b7275196da162e4aaf8fa3ae784d99423673435bb9831ad4c4edfa6",
+    "NAMA_Methodology_Sample.pptx": "208bc4202841047092f8b21299547d3b40f054129a9ad095927dc2da81ec6073",
+    "NAMA_Methodology_Keynote_Export.pptx": "fbdb9afbb7df74a372b7b9d1ade357c6bd61589c7a27c8f7caa9814e53a6cb67",
+    "NAMA_Methodology_With_Notes.pdf": "47dc608af08e37a2bf49ee48a39afcd6804062f94a1547cdca558c0fb8ba5154",
+    "NAMA_Methodology_Sample.key": "d20c4f23a1d9f46419c4ee88952e650d79308482db588081dd27f7cf080b1b80",
+    "NAMA_Methodology_Sample.pdf": "56b2d4c519caab5d02a88d12ccc03c96bca5cfd4e0def76d0c519399c3c7f7c0"
+  }
+}

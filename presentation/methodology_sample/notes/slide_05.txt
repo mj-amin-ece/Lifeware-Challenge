@@ -1,0 +1,11 @@
+Keep investigating when amounts are missing.
+TIME: 1:18–1:38
+
+SAY:
+For T7, we reused the workflow with weaker evidence. This actual Swiss example crosses the threshold between gross and net proceeds, supporting investigation of penalties. Booking presence constrains applicability; it cannot establish the amount. Public examples add checks, while hidden accuracy remains unresolved.
+
+CUE:
+Use this as a generalization example; state the limitation in the same breath.
+
+SUPPORT / EVIDENCE (not spoken):
+Actual witness BL10002408/event 8, country CH, status E. research/t7_version2_experiments.md records gross tax-currency proceeds 5,042.28 and net 4,941.43; no VST booking. Latest cases.json confirms net CHF base 4,941.43 and no booked tax types. Policy currency is EUR, so label the displayed amounts CHF after conversion, not raw policy amounts. Booking absence supports applicability, not cent-exact tax amounts or remittance. Latest reported evaluated baseline: payout 1/20 and annual 15/20; current TRACE candidate has not been scored in this conversation.
