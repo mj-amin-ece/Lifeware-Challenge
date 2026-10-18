@@ -15,7 +15,7 @@ from dateutil.relativedelta import relativedelta
 
 TAX_CURRENCY = {'CH': 'CHF'}
 # Withheld taxes are paid on this day of the next month (DE, IT) or 30 days after the end of the month (CH)
-REMITTANCE_DAY = {'DE': 10, 'IT': 16}
+REMITTANCE_DAY = {'DE': 10, 'IT': 10, 'CH': 10}  # D2 test: Neuron's tax job ran on the 10th; one remittance day for every country
 CH_REMITTANCE_DAYS = 30
 
 
