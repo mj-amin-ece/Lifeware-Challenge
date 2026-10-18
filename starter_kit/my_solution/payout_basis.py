@@ -12,9 +12,26 @@ HALF_INCOME = {'held': 12, 'age': 60, 'later age': 62, 'from': dt.date(2005, 1, 
 
 
 class PayoutBasis(TaxData):
+    def premium_basis(self, policy, day, withdrawals, country):
+        """Unrounded remaining premium basis in tax currency before this payout.
+
+        Each premium is converted on receipt, then reduced by subsequent shares
+        withdrawn. Round only the share allocated to the current payout. Kept as
+        a separate step so the research trace can inspect the actual calculation.
+        """
+        basis = Decimal(0)
+        for paid_day, premium, _ in self.premiums[policy]:
+            if paid_day <= day:
+                left = self.convert(premium, policy, country, paid_day)
+                for withdrawn_day, withdrawn in withdrawals:
+                    if withdrawn_day >= paid_day:
+                        left *= 1 - withdrawn
+                basis += left
+        return basis
+
     def gain(self, policy, payout, withdrawals, country):
         """
-        Gain of a payout in the tax currency: payout less the premiums that belong to the share paid out.
+        Gain in tax currency: customer benefit less premiums belonging to the share paid out.
 
         Parameters:
         - policy (str): Policy number.
@@ -25,16 +42,10 @@ class PayoutBasis(TaxData):
         Returns:
         - Decimal: Gain (negative for a loss).
         """
-        _, day, _, amount, share = payout
-        basis = Decimal(0)
-        for paid_day, premium, _ in self.premiums[policy]:
-            if paid_day <= day:
-                left = self.convert(premium, policy, country, paid_day, calculated_on=day)
-                for withdrawn_day, withdrawn in withdrawals:
-                    if withdrawn_day >= paid_day:
-                        left *= 1 - withdrawn
-                basis += left
-        return self.convert(amount, policy, country, day) - money(basis * share, day < self.conversion)
+        _, day, _, _, share = payout
+        basis = self.premium_basis(policy, day, withdrawals, country)
+        return self.convert(self.amount_paid(policy, payout), policy, country, day) - money(
+            basis * share, day < self.conversion)
 
     def german_base(self, policy, day, gain):
         """

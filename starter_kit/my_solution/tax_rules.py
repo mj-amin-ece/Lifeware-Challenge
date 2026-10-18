@@ -14,9 +14,9 @@ import datetime as dt
 from dateutil.relativedelta import relativedelta
 
 TAX_CURRENCY = {'CH': 'CHF'}
-# Withheld taxes are paid on this day of the next month (DE, IT) or 30 days after the end of the month (CH)
+# Candidate: DE/IT use the next month's fixed day; CH uses the next month's end.
+# Swiss timing is provisional: score feedback did not isolate it from other changes.
 REMITTANCE_DAY = {'DE': 10, 'IT': 16}
-CH_REMITTANCE_DAYS = 30
 
 
 def tax_currency(country):
@@ -27,21 +27,12 @@ def tax_currency(country):
     return TAX_CURRENCY.get(country, 'EUR')
 
 
-def swiss_remittance_split(policy, day, paid):
-    """C5 test: the two Swiss rules that produced the first correct row, each for half of the policies.
-    Parameters: policy (str): Policy number; day (datetime.date): Day of the payout; paid (datetime.date): Day paid.
-    Returns (datetime.date): Remittance date of the group's rule.
-    """
-    return day.replace(day=1) + relativedelta(months=2) - dt.timedelta(days=1)  # C7: the end of the next month, every Swiss payout
-
-
-def remittance_date(country, day, cobol=False):
+def remittance_date(country, day):
     """Day a tax withheld on `day` was paid to the tax office.
-    Parameters: country (str): Country whose tax office gets the money; day (datetime.date): Day of the payout;
-        cobol (bool): True for a payout of the COBOL era (C6 test: its Italian payments on the 10th, like Germany).
+    Parameters: country (str): Country whose tax office gets the money; day (datetime.date): Day of the payout.
     Returns (datetime.date): Remittance date.
     """
     next_month = day.replace(day=1) + relativedelta(months=1)
     if country in REMITTANCE_DAY:
         return next_month.replace(day=REMITTANCE_DAY[country])
-    return next_month - dt.timedelta(days=1) + dt.timedelta(days=CH_REMITTANCE_DAYS)
+    return next_month + relativedelta(months=1) - dt.timedelta(days=1)

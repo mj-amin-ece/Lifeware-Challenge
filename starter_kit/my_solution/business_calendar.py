@@ -33,15 +33,6 @@ class BusinessCalendar:
         """True for a Monday-Friday date outside the learned holidays."""
         return day.weekday() < 5 and day not in self.holidays(day.year)
 
-    def add_business_days(self, day, count):
-        """The business day `count` business days after `day` (a payout is made so many days after its event).
-        Parameters: day (datetime.date): Start; count (int): Business days to add.
-        Returns (datetime.date): Resulting business day.
-        """
-        for _ in range(int(count)):
-            day = self.next_business_day(day + dt.timedelta(days=1))
-        return day
-
     def next_business_day(self, day):
         """Return the first business day on or after the supplied date."""
         while not self.is_business_day(day):

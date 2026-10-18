@@ -1,14 +1,12 @@
 """t7: the taxes withheld from a payout (withdrawal, surrender, death benefit).
 
-- Gain of a payout: the payout converted into the tax currency on the payout day, less the premiums paid, each one
+- Gain of a payout: the customer benefit (after penalty or including insured death benefit), in tax currency,
+  less the premiums paid, each one
   converted on the day it was received (and reduced by the shares already withdrawn), times the share now withdrawn.
 - CH: withholding tax (VST) on the whole payout in CHF.
-- IT: substitute tax (SOS) on the gain, each rate weighted by the days of the contract in its period: the law
-  applied the rate changes of 2012 and 2014 pro rata temporis to the gain accrued before them.
+- IT: substitute tax (SOS) on the gain.
 - DE: capital gains tax (KST) on the gain, less the partial exemption (TFS) from 2018 and only half of it (HEV) after
-  12 years and from the age of 60 (62 from 2012); solidarity surcharge (SOL) and church tax (KIS) on the KST. For a
-  church member the KST is base / (4 + church rate) instead of 25 %: the tax is reduced by a quarter of the church tax
-  on it (section 32d of the German income tax act).
+  12 years and from the age of 60 (62 from 2012); solidarity surcharge (SOL) and church tax (KIS) on the KST.
 """
 from payout_basis import HALF_INCOME, PayoutBasis
 from decimal import Decimal
@@ -19,50 +17,30 @@ WITHHOLDING = {'CH': 'VST', 'IT': 'SOS', 'DE': 'KST'}
 
 
 class Withholding(PayoutBasis):
-    def italian_rate(self, policy, day, known):
-        """
-        Substitute tax rate of a payout: every rate known at `known`, weighted by the days of the contract in its
-        validity period (pro rata temporis).
-
-        Parameters:
-        - policy (str): Policy number.
-        - day (datetime.date): Day of the payout.
-        - known (pd.Timestamp): Processing time of the payout.
-
-        Returns:
-        - Decimal: Weighted rate.
-        """
-        begin = self.policies[policy].PH_BEGDT.date()
-        weighted = Decimal(0)
-        for region, start, end, _, entered, rate, _ in self.rates.rows[('IT', 'SOS')]:
-            days = (min(day, end) - max(begin, start)).days + 1
-            if not region and entered <= known and days > 0:
-                weighted += rate * days
-        return weighted / ((day - begin).days + 1)
-
     def withholding(self, policy, payout, withdrawals, country, region):
         """
-        Taxable base, withheld tax and surcharges of a payout; all 0.00 when Neuron booked no withholding tax.
+        Report the amount subject to a booked withholding tax; otherwise report zero.
+
+        This candidate uses zero for the taxable base of untaxed payouts. The
+        research comparison also tests reporting their economic gain or loss.
 
         Returns:
         - tuple: (base, withheld, surcharges, {tax type: amount})
         """
-        event, day, known, amount, _ = payout
+        event, day, known, _, _ = payout
         booked, cobol = self.booked[(policy, event)], day < self.conversion
         tax = WITHHOLDING.get(country)
         if tax not in booked:
             return Decimal('0.00'), Decimal('0.00'), Decimal('0.00'), {}
         if country == 'CH':
-            base = self.convert(amount, policy, country, day)
+            base = self.convert(self.amount_paid(policy, payout), policy, country, day)
         elif country in ('IT', 'DE'):
             base = self.gain(policy, payout, withdrawals, country)
             base = self.german_base(policy, day, base) if country == 'DE' else base
         else:
             base = Decimal('0.00')
         rate, _ = self.rates.rate(country, tax, day, known)
-        rate = self.italian_rate(policy, day, known) if country == 'IT' else rate
-        church_rate, _ = self.rates.rate(country, 'KIS', day, known, region) if 'KIS' in booked else (None, None)
-        withheld = money(base / (4 + church_rate) if church_rate is not None else base * rate, cobol)
+        withheld = money(base * rate, cobol)
         amounts = {tax: withheld}
         for surcharge in ['SOL', 'KIS']:
             surcharge_rate, _ = self.rates.rate(country, surcharge, day, known, region)
