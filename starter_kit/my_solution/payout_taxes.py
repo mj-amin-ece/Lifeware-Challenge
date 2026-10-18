@@ -46,8 +46,11 @@ class TaxModule(Withholding):
             if reported:  # the Swiss tax reported instead of withheld counts as Swiss tax in the annual table
                 yearly[(day.year, 'REPORTED')] += reported
             remitted = None  # Switzerland 30 days after the end of the month, Italy on the 16th, Germany on the 10th
-            if withheld + surcharges > 0:
-                remitted = month_end_plus_30(day) if country == 'CH' else remittance_date(country, day)
+            if withheld + surcharges > 0:  # counted from the month the money was paid (PD_PAYDAY business days later)
+                paid = day
+                for _ in range(int(self.policies[policy].PD_PAYDAY)):
+                    paid = calendar(self.data).next_business_day(paid + dt.timedelta(days=1))
+                remitted = month_end_plus_30(paid) if country == 'CH' else remittance_date(country, paid)
             if remitted:  # a deadline on a closed day moves to the next business day; in Switzerland 2 January is closed
                 remitted = calendar(self.data).next_business_day(remitted)
                 while country == 'CH' and (remitted.month, remitted.day) == (1, 2):
