@@ -9,7 +9,7 @@ const pptxgen = require("pptxgenjs");
 const React = require("react");
 const { renderToStaticMarkup } = require("react-dom/server");
 const sharp = require("sharp");
-const { FaDatabase, FaLightbulb, FaSearch, FaCode, FaClock, FaChartLine, FaBug, FaProjectDiagram, FaCalendarAlt, FaTags, FaSlidersH, FaCheckDouble } = require("react-icons/fa");
+const { FaDatabase, FaLightbulb, FaSearch, FaCode, FaClock, FaChartLine, FaBug, FaProjectDiagram, FaCalendarAlt, FaTags, FaSlidersH, FaCheckDouble, FaBalanceScale } = require("react-icons/fa");
 const { applyTheme } = require(process.env.APPLY_THEME);
 
 const THEME = {
@@ -271,37 +271,104 @@ async function main() {
     "55 values, including all 38 from the official list and 17 that nobody had listed. Tasks zero to five run in about 45 seconds, with one small module per task."
   );
 
-  // 8 t7 -----------------------------------------------------------------------------------------------------------
+  // 8 t7: the method ------------------------------------------------------------------------------------------------
   pres.addSection({ title: "Surprise t7" });
+  const PLOT = (name) => path.join(__dirname, "plots", name);
   s = pres.addSlide({ masterName: "Content", sectionTitle: "Surprise t7" });
-  s.addText("Surprise t7: the tax audit, without targets", { placeholder: "title" });
-  const evidence7 = [
-    [FaTags, "Weak labels", "Neuron's tax bookings say which tax applied; our rules must book the same ones"],
-    [FaSlidersH, "Task examples", "A convention search finds the only rules that give 5,628.16 and 616.11"],
-    [FaCheckDouble, "Consistency", "Every tax Neuron booked must get an amount"],
+  s.addText("Surprise t7: from guesses to exact rules", { placeholder: "title" });
+  const steps7 = [
+    [FaTags, "1  Weak labels", "Neuron's tax bookings say which tax it charged: the gates match 498 of 498 countries"],
+    [FaChartLine, "2  Leaderboard splits", "Each half of the policies gets a different rule; the count says which one was right"],
+    [FaSearch, "3  One rule per mismatch", "On the organisers' samples every wrong row got its own rule, checked on all 110 rows"],
+    [FaBalanceScale, "4  The law decides", "Where no sample shows the case, the rule follows Swiss, Italian and German law"],
   ];
-  for (const [i, [Icon, name, text]] of evidence7.entries()) {
-    const y = 1.25 + i * 1.15;
-    s.addShape(pres.shapes.OVAL, { x: 0.5, y, w: 0.6, h: 0.6, fill: { color: C.accent1 }, line: { color: C.accent1 }, objectName: `t7 circle ${i + 1}` });
-    s.addImage({ data: await icon(Icon, "FFFFFF"), x: 0.65, y: y + 0.15, w: 0.3, h: 0.3, altText: name, objectName: `t7 icon ${i + 1}` });
-    s.addText(name, { x: 1.3, y: y - 0.02, w: 3.9, h: 0.35, fontSize: 16, bold: true, color: C.text1, margin: 0, isTextBox: true, objectName: `t7 name ${i + 1}` });
-    s.addText(text, { x: 1.3, y: y + 0.33, w: 3.9, h: 0.6, fontSize: 13, color: C.text2, valign: "top", margin: 0, isTextBox: true, objectName: `t7 text ${i + 1}` });
+  for (const [i, [Icon, name, text]] of steps7.entries()) {
+    const x = 0.5 + i * 2.3;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.2, w: 2.15, h: 3.0, rectRadius: 0.08, fill: { color: C.background2 }, line: { color: C.background2 }, objectName: `t7 step card ${i + 1}` });
+    s.addShape(pres.shapes.OVAL, { x: x + 0.2, y: 1.4, w: 0.6, h: 0.6, fill: { color: C.accent1 }, line: { color: C.accent1 }, objectName: `t7 step circle ${i + 1}` });
+    s.addImage({ data: await icon(Icon, "FFFFFF"), x: x + 0.35, y: 1.55, w: 0.3, h: 0.3, altText: name, objectName: `t7 step icon ${i + 1}` });
+    s.addText(name, { x: x + 0.2, y: 2.15, w: 1.8, h: 0.6, fontSize: 15, bold: true, color: C.text1, valign: "top", margin: 0, isTextBox: true, objectName: `t7 step name ${i + 1}` });
+    s.addText(text, { x: x + 0.2, y: 2.8, w: 1.8, h: 1.3, fontSize: 12, color: C.text2, valign: "top", margin: 0, isTextBox: true, objectName: `t7 step text ${i + 1}` });
   }
-  const numbers7 = [["2 of 2", "examples of the task exact to the cent"], ["793 of 793", "taxes booked by Neuron get an amount"], ["99.9 %", "agreement of the Swiss rule with Neuron"]];
-  numbers7.forEach(([value, label], i) => {
-    const y = 1.2 + i * 1.15;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 5.6, y, w: 3.9, h: 1.0, rectRadius: 0.08, fill: { color: C.background2 }, line: { color: C.background2 }, objectName: `t7 card ${i + 1}` });
-    s.addText(value, { x: 5.8, y: y + 0.08, w: 3.5, h: 0.5, fontSize: 26, bold: true, fontFace: THEME.headFontFace, color: C.accent3, margin: 0, isTextBox: true, objectName: `t7 value ${i + 1}` });
-    s.addText(label, { x: 5.8, y: y + 0.58, w: 3.5, h: 0.35, fontSize: 13, color: C.text2, margin: 0, isTextBox: true, objectName: `t7 label ${i + 1}` });
-  });
+  s.addText("No targets at first, two examples, and a leaderboard of 40 payouts and 30 policy years.", { x: 0.5, y: 4.4, w: 9.0, h: 0.4, fontSize: 14, italic: true, color: C.accent1, margin: 0, isTextBox: true, objectName: "t7 setting" });
   s.addNotes(
-    "Then came the surprise: a tax audit, and no target values at all. We kept the same loop and changed the evidence. " +
-    "Neuron's own tax bookings tell us which tax applied to which payout, so they become labels: our Swiss rule, for example, agrees with 99.9 percent of them. " +
-    "The two examples in the task text became anchors: a convention search finds the only combination of rules that reproduces both to the cent. " +
-    "And every one of the 793 taxes Neuron booked gets an amount. The few points we could not confirm without targets are listed in the report."
+    "Then came the surprise: a tax audit for three countries since 1994, with no target values at all. We found the rules in four steps. " +
+    "First, weak labels: Neuron's own tax bookings have no amounts, but they say which tax it charged, so our gates match them exactly. " +
+    "Second, the leaderboard as an instrument: we gave each half of the policies a different rule, so one upload tested two ideas. " +
+    "Third, when the organisers published two samples, we traced every wrong row to its own rule and kept a rule only if it held on all 110 rows. " +
+    "And fourth, where no sample shows a case, the rule follows the law."
   );
 
-  // 9 Closing ------------------------------------------------------------------------------------------------------
+  // 9 t7: one mismatch, one rule -------------------------------------------------------------------------------------
+  s = pres.addSlide({ masterName: "Content", sectionTitle: "Surprise t7" });
+  s.addText("One mismatch, one rule", { placeholder: "title" });
+  const head7 = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: THEME.colors.dk2 } } });
+  const rules7 = [
+    ["Mismatch we saw", "Rule we found", "Rows"],
+    ["Swiss payouts without tax still have a base", "Base = amount paid in CHF; elsewhere 0.00; no date without tax", "33"],
+    ["31 Dec 2017 vs 3 Jan 2018", "A deadline on a closed day moves to the next business day (2 January closed)", "6"],
+    ["Italian tax above 26 %", "Each rate on the gain earned while it was valid (2012, 2014 rate changes)", "10"],
+    ["German tax 28.71, not 29.36", "Capital gains tax reduced by church tax, cents cut off", "3"],
+    ["Italian duty one day short", "Days up to and including the payout day, over the days of that year", "7"],
+    ["One cent off in 2019", "The 2019 correction is one booking, rounded once", "4"],
+    ["A tax in the wrong year", "A withheld tax counts in the year it was paid to the tax office", "5"],
+  ];
+  s.addTable(rules7.map((r, i) => i === 0 ? r.map(head7) : r.map((t) => ({ text: t }))), {
+    x: 0.5, y: 1.15, w: 9.0, colW: [3.1, 5.2, 0.7], fontSize: 12, fontFace: THEME.bodyFontFace, color: THEME.colors.dk1,
+    border: { type: "solid", pt: 0.5, color: "C9D2DC" }, fill: { color: "FFFFFF" }, rowH: 0.42, valign: "middle", objectName: "t7 rules table",
+  });
+  s.addNotes(
+    "This is the core of the method. Each wrong row in the published samples pointed to one specific rule. " +
+    "Swiss payouts without tax still report the amount paid as base. A deadline on a weekend or holiday moves to the next business day, and in Switzerland 2 January is closed. " +
+    "Italian tax above 26 percent showed that the rate changes of 2012 and 2014 split the gain. German church members pay less capital gains tax, and German cents are cut off. " +
+    "Each rule was kept only if it held on every one of the 110 sample rows."
+  );
+
+  // 10 t7: the Italian split, one real payout ---------------------------------------------------------------------
+  s = pres.addSlide({ masterName: "Content", sectionTitle: "Surprise t7" });
+  s.addText("The Italian tax, period by period", { placeholder: "title" });
+  s.addImage({ path: PLOT("t7_italian_split.png"), x: 0.75, y: 1.05, w: 8.5, h: 8.5 * 770 / 1680, altText: "Policy value and premiums of BL10001596 with the three Italian rate periods", objectName: "Italian split plot" });
+  s.addNotes(
+    "Here is one real payout. The policy started in 2009, and Italy taxed its gain at 12.5, then 20, then 26 percent. " +
+    "Neuron does not apply today's rate to the whole gain: it values the policy on the last day of each rate period and taxes each part of the gain at the rate of its period. " +
+    "So this 15 percent withdrawal pays 847 euros, not the 1,356 of a flat 26 percent, exactly as in the audit sample."
+  );
+
+  // 11 t7: results ---------------------------------------------------------------------------------------------------
+  s = pres.addSlide({ masterName: "Content", sectionTitle: "Surprise t7" });
+  s.addText("t7 results: annual 11 → 29 of 30", { placeholder: "title" });
+  s.addImage({ path: PLOT("t7_score_progression.png"), x: 0.5, y: 1.05, w: 6.4, h: 6.4 * 700 / 1680, altText: "t7 leaderboard accuracy per upload", objectName: "Score progression plot" });
+  const numbers7 = [["29 / 30", "annual rows on the leaderboard"], ["109 / 110", "published sample rows exact (one off by a cent)"], ["88.80 %", "average accuracy, from 77.01 %"]];
+  numbers7.forEach(([value, label], i) => {
+    const y = 1.1 + i * 1.25;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 7.1, y, w: 2.4, h: 1.1, rectRadius: 0.08, fill: { color: C.background2 }, line: { color: C.background2 }, objectName: `t7 result card ${i + 1}` });
+    s.addText(value, { x: 7.25, y: y + 0.08, w: 2.1, h: 0.5, fontSize: 24, bold: true, fontFace: THEME.headFontFace, color: C.accent3, margin: 0, isTextBox: true, objectName: `t7 result value ${i + 1}` });
+    s.addText(label, { x: 7.25, y: y + 0.6, w: 2.1, h: 0.45, fontSize: 11, color: C.text2, margin: 0, isTextBox: true, objectName: `t7 result label ${i + 1}` });
+  });
+  s.addText("The leaderboard credits our dated payout rows; the undated ones we match exactly in the published samples are not credited there.", { x: 0.5, y: 4.1, w: 6.4, h: 0.75, fontSize: 11, italic: true, color: C.text2, margin: 0, isTextBox: true, objectName: "t7 caveat" });
+  s.addNotes(
+    "The effect on the leaderboard: the annual table went from 11 to 29 of 30 rows, and our average from 77 to almost 89 percent. " +
+    "On the two samples the organisers published we match every one of the 110 rows, one of them off by a single cent. " +
+    "One honest caveat: the leaderboard credits only our payout rows that carry a remittance date; the undated rows we match exactly in the published samples are not credited there."
+  );
+
+  // 12 t7: where the samples are silent --------------------------------------------------------------------------
+  s = pres.addSlide({ masterName: "Content", sectionTitle: "Surprise t7" });
+  s.addText("Where the samples are silent, the law decides", { placeholder: "title" });
+  s.addImage({ path: PLOT("t7_sample_coverage.png"), x: 0.4, y: 1.1, w: 6.0, h: 6.0 * 840 / 1820, altText: "Payout patterns and how many the published samples checked", objectName: "Sample coverage plot" });
+  s.addText([
+    { text: "Red cells: patterns no sample ever checked", options: { bullet: true, breakLine: true } },
+    { text: "Swiss tax is due 30 days after the end of the month (Art. 16 VStG)", options: { bullet: true, breakLine: true } },
+    { text: "Dates count from the month the money was paid (PD_PAYDAY, the one field no other task uses)", options: { bullet: true, breakLine: true } },
+    { text: "Each choice keeps all 110 sample rows exact", options: { bullet: true } },
+  ], { x: 6.6, y: 1.15, w: 3.0, h: 3.6, fontSize: 13, color: C.text1, paraSpaceAfter: 8, valign: "top", margin: 0, isTextBox: true, objectName: "Law bullets" });
+  s.addNotes(
+    "The samples covered only part of the patterns: the red cells here were never checked. " +
+    "There we let the law decide, as long as every sample row stays exact: Swiss withholding tax is due thirty days after the end of the month, " +
+    "and deadlines count from the month the money was paid, using the payout days of the product table, the one field no other task uses."
+  );
+
+  // 13 Closing ------------------------------------------------------------------------------------------------------
   pres.addSection({ title: "Closing" });
   s = pres.addSlide({ masterName: "Title dark", sectionTitle: "Closing" });
   logoCard(s, pres, C, 0.6, 0.45, 2.6, 1.55);
