@@ -49,7 +49,8 @@ class TaxModule(Withholding):
             if country == 'CH' and not withheld:  # M3 test: the Swiss tax reported instead of withheld
                 yearly[(day.year, 'REPORTED')] += self.reported_tax(policy, payout, address)
             if withheld + surcharges > 0:  # M2: every Swiss row on month end; Italy the 16th, Germany the 10th
-                remitted = end_of_next_month(day) if country == 'CH' else remittance_date(country, day)
+                remitted = end_of_next_month(day) if country == 'CH' else remittance_date(
+                    'DE' if country == 'IT' and day < self.conversion else country, day)  # M3 test: COBOL Italy on the 10th
             else:  # M1 test: a collected Italian duty is remitted at the end of the next month
                 remitted = end_of_next_month(day) if stamp > 0 else None
             if remitted and country in ('IT', 'DE'):  # M3 test: a deadline on a closed day moves to the next business day
