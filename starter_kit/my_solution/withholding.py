@@ -19,27 +19,6 @@ WITHHOLDING = {'CH': 'VST', 'IT': 'SOS', 'DE': 'KST'}
 
 
 class Withholding(PayoutBasis):
-    def italian_rate(self, policy, day, known):
-        """
-        Substitute tax rate of a payout: every rate known at `known`, weighted by the days of the contract in its
-        validity period (pro rata temporis).
-
-        Parameters:
-        - policy (str): Policy number.
-        - day (datetime.date): Day of the payout.
-        - known (pd.Timestamp): Processing time of the payout.
-
-        Returns:
-        - Decimal: Weighted rate.
-        """
-        begin = self.policies[policy].PH_BEGDT.date()
-        weighted = Decimal(0)
-        for region, start, end, _, entered, rate, _ in self.rates.rows[('IT', 'SOS')]:
-            days = (min(day, end) - max(begin, start)).days + 1
-            if not region and entered <= known and days > 0:
-                weighted += rate * days
-        return weighted / ((day - begin).days + 1)
-
     def withholding(self, policy, payout, withdrawals, country, region):
         """
         Taxable base, withheld tax and surcharges of a payout; all 0.00 when Neuron booked no withholding tax.
@@ -60,9 +39,7 @@ class Withholding(PayoutBasis):
         else:
             base = Decimal('0.00')
         rate, _ = self.rates.rate(country, tax, day, known)
-        rate = self.italian_rate(policy, day, known) if country == 'IT' else rate
-        church_rate, _ = self.rates.rate(country, 'KIS', day, known, region) if 'KIS' in booked else (None, None)
-        withheld = money(base / (4 + church_rate) if church_rate is not None else base * rate, cobol)
+        withheld = money(base * rate, cobol)
         amounts = {tax: withheld}
         for surcharge in ['SOL', 'KIS']:
             surcharge_rate, _ = self.rates.rate(country, surcharge, day, known, region)
