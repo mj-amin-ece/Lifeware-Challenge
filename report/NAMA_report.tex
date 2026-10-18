@@ -4,155 +4,129 @@
 \usepackage[utf8]{inputenc}
 \usepackage{newtxtext,newtxmath}
 \usepackage[margin=1.9cm,top=1.6cm,bottom=1.8cm]{geometry}
-\usepackage{graphicx}
-\usepackage{booktabs}
-\usepackage{tabularx}
-\usepackage{enumitem}
-\usepackage{xcolor}
+\usepackage{graphicx,booktabs,tabularx,xcolor}
 \usepackage[hidelinks]{hyperref}
-\usepackage{titlesec}
+\usepackage{titlesec,caption}
 
 \definecolor{ink}{HTML}{16212E}
 \definecolor{swissred}{HTML}{D52B1E}
 \titleformat{\section}{\large\bfseries\color{ink}}{\thesection}{0.6em}{}
-\titleformat{\subsection}{\normalsize\bfseries\color{ink}}{\thesubsection}{0.6em}{}
-\titlespacing*{\section}{0pt}{8pt}{3pt}
-\titlespacing*{\subsection}{0pt}{5pt}{2pt}
-\setlist{itemsep=1pt,topsep=2pt,parsep=0pt,leftmargin=1.2em}
-\setlength{\parskip}{3pt}
+\titleformat{\subsection}{\normalsize\bfseries\color{ink}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{9pt}{4pt}
+\titlespacing*{\subsection}{0pt}{7pt}{3pt}
+\captionsetup{font=footnotesize,labelfont=bf,skip=4pt,hypcap=false}
+\setlength{\parskip}{5pt}
 \setlength{\parindent}{0pt}
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}
-\newcommand{\code}[1]{\texttt{#1}}
+\hypersetup{pdftitle={The Neuron Migration},pdfauthor={Team NAMA}}
 
 \begin{document}
 
-\begin{minipage}{0.74\textwidth}
-  {\LARGE\bfseries\color{ink} The Neuron Migration}\\[2pt]
-  {\large Rebuilding 30 years of insurance logic as code an auditor can check}\\[4pt]
-  {\color{swissred}\bfseries Team NAMA}: Mohammad Javad Amin, Nava Biglar, Malihe Ghasemian, Emad Aghajani\\
-  Lifeware Challenge, Neural Wave AI Hackathon 2026 \quad USI Lugano
+\begin{minipage}{0.76\textwidth}
+  {\LARGE\bfseries\color{ink} The Neuron Migration}\\[3pt]
+  {\large Finding the rules behind the numbers}\\[6pt]
+  {\bfseries Team NAMA}\\[2pt]
+  Mohammad Javad Amin, Nava Biglar,\\
+  Emad Aghajani, Maliheh Ghasemian\\[3pt]
+  Neural Wave AI Hackathon 2026 \quad USI Lugano
 \end{minipage}\hfill
-\IfFileExists{../presentation/usi_logo.png}{\begin{minipage}{0.22\textwidth}\raggedleft\includegraphics[width=\linewidth]{../presentation/usi_logo.png}\end{minipage}}{}
+\IfFileExists{../presentation/usi_logo.png}{\begin{minipage}{0.19\textwidth}\raggedleft\includegraphics[width=\linewidth]{../presentation/usi_logo.png}\end{minipage}}{}
 
-\vspace{6pt}
-\noindent\textbf{In one paragraph.} NeuralWave Life's legacy system Neuron has no source code and no reliable
-documentation, yet the new system must reproduce its numbers to the cent. We found Neuron's rules for all tasks from
-the data alone and wrote them as about 2,700 lines (tools included) of plain Python with exact decimals. On the training policies every
-value that is still different from Neuron's is a value someone changed by hand: we recalculate 5,024,847 fund
-bookings and all of them match except three manual edits. The surprise task t7 (tax audit) came without any target
-values; we solved it with the same method, using Neuron's own tax bookings as labels.
+\section{Methodology}
 
-\section{Approach}
+Our approach was to use AI and statistical tools to investigate the data, then express the discovered rules as deterministic Python. The final calculations can be traced back to explicit decisions, while the tools help us decide which assumptions to test next.
 
-\subsection{AI finds the rules, plain code applies them}
-A model that predicts a surrender value is never exact and cannot be audited, so no model runs inside our
-submission. Machine learning and search are only used to \emph{find} rules; every rule is then written as a short,
-deterministic function (one module per task, \code{Decimal} arithmetic, no hard-coded values of this export).
+\subsection{Establish what the records tell us}
+We first connected policy information, transactions and historical changes to understand what was known at each point in time. We checked data inconsistencies before treating them as evidence of a calculation error. This distinction mattered, because an invalid date or inconsistent label could otherwise lead us to invent a rule that the system never used.
 
-\textbf{Data processing.} One loader decodes all 27 tables. It reads the data dictionary \code{NRDICT} first and
-decodes every column by its type (padded text, implied decimals, \code{CYYMMDD} dates, timestamps), so there is no
-code per table. Decoding everything this way already surfaced the data problems: impossible birth dates (31
-November), a code list with a shifted column, lowercase currency codes, a smoker flag \code{J/N} instead of \code{Y/N}.
+\subsection{Use discrepancies to choose the next hypothesis}
+For each task, we started with the simplest rule and compared its output with the available targets. We grouped failures by policy characteristics and period, then asked what those cases had in common. Simple decision trees helped identify conditions associated with errors, and comparisons over time helped locate changes in behavior. We also compared alternative conventions when several explanations appeared plausible.
 
-\subsection{One discovery loop with generic tools}
-For every target we run the same loop: write the simplest rule, mark the values it gets wrong, ask the tools
-\emph{why}, turn the answer into code, and repeat until only manual corrections are left. None of the tools knows
-anything about insurance:
+The aim was to explain a recurring pattern. A hypothesis became useful when it accounted for a group of failures and continued to work on the cases we already understood. We changed assumptions in controlled comparisons where possible, checked the consequences, and kept general rules rather than adding exceptions for individual policies.
 
-\begin{center}\small
-\begin{tabularx}{\textwidth}{@{}lL L@{}}
-\toprule
-Tool & Question it answers & Example of what it found \\
-\midrule
-Rule finder (shallow decision tree) & Under which conditions is the rule wrong? & due dates drift for month-end starts before 2007 \\
-Change-point finder & On which day did the behaviour change? & the COBOL $\rightarrow$ Java conversion on 2007-08-11 \\
-Residual analysis & What do the differences say? & ratios of 31/360 and 28/360: COBOL charged by the day \\
-Convention search & Which convention is it? & order of the charges; Actual/360 with cut-off rounding \\
-Weak labels & No targets: does a rule book what Neuron booked? & Swiss withholding needs an objection and $>$ CHF 5,000 \\
-Learned calendar & Which days are business days? & the Ticino holidays, learned from the fund price days \\
-\bottomrule
-\end{tabularx}
-\end{center}
+\subsection{Check individual steps before the full history}
+In fund accounting, one early error can affect every later balance. We therefore checked each calculation against the recorded state immediately before it. This allowed us to distinguish a wrong rule from a correct rule receiving an already incorrect balance.
 
-Notebook 06 runs each tool on its own and shows it rediscovering one of our rules. For the fund accounting (t3, t4)
-we added one more idea: \emph{teacher forcing}. We take the holdings before each booking from Neuron's diagnostic
-bookings, so that every booking checks one formula in isolation instead of carrying earlier errors forward.
+We then replayed the complete sequence and compared the resulting outputs. Policy values, annual statements and taxes shared the same accounting foundation, so a change in one place could be checked against related tasks. Exact monetary comparisons were essential since a close result could still reveal the wrong convention.
 
-\subsection{What the loop found}
-The central finding is that Neuron is really two systems. Until the conversion on 2007-08-11 the COBOL system cut off
-every amount, computed the age as days since birth / 365 (ignoring leap days), charged the management fee by actual
-days / 360 and let due dates drift (31 $\rightarrow$ 30 $\rightarrow$ 28). Neuron NG rounds half up, takes the age at
-the nearest birthday, charges a twelfth of the yearly rate and anchors the due dates. The accounting also has
-operational rules nobody wrote down: the charge run at 01:30 only sees units traded before that day, each fund buys on
-its own first day with a price, rounding remainders go to the largest position, and the Italian stamp duty is
-re-booked when a tax rate is corrected afterwards. The extended report lists every rule with its evidence.
+\subsection{Treat historical changes as part of the rules}
+A major turning point was recognizing the effect of the 2007 system conversion. A single convention did not explain both periods. For example, older payment schedules could retain a date shift caused by a short month, while the newer system returned to an anchored schedule.
 
-\textbf{t7 without targets.} The organisers could not give us t7 targets. We used three other sources of evidence:
-Neuron's tax bookings (which tax was booked for which payout and year, without amounts) as weak labels, the two
-examples of the task text as exact anchors for a convention search, and a consistency check that every tax Neuron
-booked gets an amount. Both examples come out to the cent (5,628.16 and 616.11).
+We used this distinction to guide the rest of the investigation. Dates, changing terms and operational timing became part of the explanation, rather than background information. The same discovery process could then be reused across tasks: identify the pattern, propose a rule and check it against the available evidence.
 
+\subsection{Approach to t7: working with limited evidence}
+The surprise tax task (``t7'') was harder because target data was (initially) unavailable. Without direct comparisons, our early investigation was more speculative: we considered, for example, whether tax calculations varied by canton as well as by country. Tax-booking records, worked examples and consistency checks helped narrow the possibilities, but could not settle every assumption. Samples released later by the organisers allowed us to test these ideas more directly.
+
+\newpage
 \section{Results}
 
-Official scoring on the 3,019 training policies:
+On the 3,019 training policies, the supplied local scorer gave the following exact-match results:
 
-{\small
-\begin{tabular}{@{}lrr@{}}
+\vspace{3pt}
+\begin{minipage}[t]{0.51\textwidth}
+\vspace{0pt}
+\begin{tabularx}{\linewidth}{@{}Lr@{}}
 \toprule
-Task & Exact rows & Accuracy \\
+Task & Accuracy \\
 \midrule
-t0 Commission & 225,848 / 225,858 & 99.996\,\% \\
-t1 Next due dates & 15,028 / 15,028 & 100\,\% \\
-t2 Projected maturity value & 3,011 / 3,019 & 99.735\,\% \\
-t3 Surrender value & 6,137 / 6,153 & 99.740\,\% \\
-t4 Annual statement & 34,124 / 34,145 & 99.939\,\% \\
+Commission & 99.996\,\% \\
+Next due dates & 100\,\% \\
+Projected maturity value & 99.735\,\% \\
+Surrender value & 99.740\,\% \\
+Annual statement & 99.939\,\% \\
 \bottomrule
-\end{tabular}}
+\end{tabularx}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.44\textwidth}
+\vspace{0pt}
+Outlier analysis identified 55 remaining discrepancies: 38 documented manual corrections and 17 additional suspected edits. We kept these visible rather than adding exceptions to match individual targets. These are training results, not estimates for unseen policies.
+\end{minipage}
+\vspace{3pt}
 
-\begin{itemize}
-  \item \textbf{Every remaining miss is a manual correction}: whole-franc differences while the values around them
-        (yearly projections, policy values, other bookings) are exact. The official scoring does not count them.
-  \item \textbf{t5}: our outlier detection reports exactly these 55 values, including all 38 manual corrections listed
-        for these policies in \code{NREXCP} and 17 that nobody had listed.
-  \item \textbf{t6}: the figure shows why the era matters. With the Neuron NG rules alone, 97\,\% of the statement
-        rows of the COBOL era are wrong, and the error fades only slowly after 2007 (still 17\,\% in 2025), because
-        old policies carry the wrong balance forward. Our rules stay at 0\,\%.
-  \item \textbf{Runtime and code}: t0--t5 run in 45 seconds (t7 adds 3), 8$\times$ faster than our first version after
-        profiling; radon maintainability index 68.
-\end{itemize}
+\subsection{Historical rules remove a persistent error pattern}
+Applying only the newer conventions produces substantial errors for older policies (Figure~\ref{fig:eras}). Statement errors persist after conversion because later balances inherit earlier differences. Reconstructing the historical rules removes this systematic pattern.
 
 \begin{center}
-  \includegraphics[width=0.8\textwidth,trim=0 252 0 0,clip]{../Plots/errors_by_era.png}\\[-2pt]
-  {\footnotesize\itshape Share of wrong values per year with the Neuron NG rules for all years (red) and with our rules
-  (green), t4 statements and t2 offers; the COBOL era is shaded.}
+\includegraphics[width=0.86\textwidth]{../Plots/errors_by_era.png}
+\captionof{figure}{Incorrect outputs by year for annual statements, maturity projections and due dates. Red applies the newer rules throughout; green uses the reconstructed historical rules. Shading marks the older system period.}
+\label{fig:eras}
 \end{center}
 
-\section{Challenges and what did not work}
-\begin{itemize}
-  \item \textbf{Wrong first hypotheses}, each rejected by an exact test: holdings in booking order (the charge run
-        happens before same-day trades), the FX rate of the trade day for premiums (it is the day before), growth
-        compounded as $(1+r)^{1/12}$ and applied before the charges, rate / 12 in the COBOL era, the first publication of
-        restated prices, rounding remainders on the first or last fund, anchored due dates for COBOL policies.
-  \item \textbf{A test that lied}: we first compared amounts with \code{np.isclose}, whose relative tolerance hid
-        one-cent errors on large values (99.4\,\% looked like progress; the official score was 95.9\,\%). Since then
-        every check compares to the cent.
-  \item \textbf{Ambiguous evidence}: the age that COBOL used fitted 97\,\% of the offers with the nearest birthday.
-        Only testing single data changes (one year older) and then several age formulas isolated days / 365.
-  \item \textbf{No targets for t7}: the open points are the Swiss and Italian remittance dates (30 days after the month
-        end, the 16th of the next month), the share of the year in the stamp duty booked at a payout, and the German
-        partial exemption from 2018. They follow the law and the data structure but could not be checked to the cent.
-  \item \textbf{Trade-offs}: splitting modules raised the maintainability index, merging small files lowered it; we
-        measured each change with radon instead of guessing.
-\end{itemize}
+\subsection{t7 results and limitations}
+Local checks against the two released tax samples gave the following results:
 
-\section{AI agents and LLM usage}
-We worked with Claude Code, Anthropic's agentic coding assistant (Claude Opus models), throughout the hackathon. It
-wrote most of the code, the notebooks, the first drafts of this report and the slides, ran the experiments in a local
-Python environment and proposed hypotheses from the residual patterns (for example that a ratio of 1.033 means 31 days
-/ 360). The team set the direction, decided which ideas to pursue, reviewed the results and checked everything with the
-official scorer; every rule in the code is backed by an exact test on the data. For t7 the task text asks for custom or
-open-weights models because of the tax data; we asked the organisers, who confirmed that a coding assistant is allowed.
-No language model and no machine-learning model runs inside the submission: decision trees and searches are only used
-in the discovery tools, and the submitted functions are deterministic Python.
+\begin{center}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Released sample & Exact payouts & Exact annual rows \\
+\midrule
+Sample 1 & 19 / 20 & 20 / 20 \\
+Sample 2 & 40 / 40 & 30 / 30 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+These samples were used during development. The latest recorded leaderboard result was lower: 10/40 payouts and 29/30 annual rows. The difference remains unresolved, and one released payout still differs locally by a cent. We report these outcomes separately rather than treating the sample matches as independent validation.
+
+\newpage
+\section{Challenges}
+
+\subsection{Reading patterns without overinterpreting them}
+The tax timeline provided evidence beyond target values. Changes in booking frequency and processing times helped us select periods for closer investigation. The shift around 2007 is visible in the middle panel; the bottom panel shows same-day recording for the plotted payout bookings. These observations constrained our hypotheses without establishing the tax formulas themselves.
+
+\begin{center}
+% Cached rendering of the timeline; the original JPEG is currently unreadable.
+\includegraphics[width=0.90\textwidth]{tax_timeline_preview.pdf}
+\captionof{figure}{Tax-booking timeline: annual counts by tax type (top), processing hour by job (middle), and days between payout events and bookings (bottom). The dashed line marks the system transition.}
+\label{fig:timeline}
+\end{center}
+
+\subsection{What did not work}
+Applying the newer conventions to all periods failed on older policies. Familiar financial and legal conventions also proved insufficient without direct checks. Early comparisons were too tolerant and hid small monetary errors; exact comparisons exposed the remaining differences.
+
+Aggregate tax scores were difficult to interpret because several fields could be wrong in the same row. Fixing one field might leave the score unchanged. Released examples made the investigation more focused, but also increased the risk of fitting too closely to known cases. Broader tax accuracy remains an open question.
+
+\section{Takeaways}
+The same discovery process can be reused across tasks: investigate recurring discrepancies, test explanations and turn supported rules into explicit code. Reconstructing historical behavior makes that code reflect how the system actually evolved.
 
 \end{document}
