@@ -81,6 +81,23 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## 02:15: data-backed changes only, three candidates left
+
+Rule from now on: a change goes into an upload only if the data supports it (a booking pattern, the organisers'
+vocabulary, a convention verified in t1-t4) or if it is a split that attributes itself. Dropped for lack of support:
+duty collected in full (a second payout in the same year gets a second collection, 6 of 6), duty on the surrender
+value ("policy value" is defined before the penalty in SCHEMA.md), deaths as units, Swiss 5 Rappen as a stand-alone
+idea. The probe upload is redundant (untaxed rows already carry None and scored 0).
+
+| Slot | Upload | Payout side (attributable) | Annual side |
+|---|---|---|---|
+| 02:51 | d2-tenth-firstyear | the 10th for CH and IT (DE already there) | first policy year charged pro rata, like a payout year (418 rows) |
+| 03:51 | d3-era-split-rappen | COBOL rows the 10th, NG rows the law | Swiss 5 Rappen (rides along) |
+| 04:51 | d4-country-split-dayplus1 | CH month end, IT next job run, DE the 10th | payout day counted in the duty |
+
+Branches kept: main, d2-tenth-firstyear, d3-era-split-rappen, d4-country-split-dayplus1, e9-safe-law (fallback),
+Version-2. Everything else was merged into main's history or superseded.
+
 ## Merged plan, 01:35: the first two slots in one, then splits
 
 Slot 1 (`main`, b946289) now carries the questions of the old slots 1 and 2, because their payout questions touch
