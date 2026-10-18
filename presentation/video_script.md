@@ -2,7 +2,7 @@
 
 The judges watch the video first, so it has to carry the whole story: the goal, the method, the results and t7.
 About 260 words of narration, spoken calmly, fits in 1:58. Visuals are the deck slides (`NAMA_Neuron_Migration.pptx`, 13 slides),
-one terminal run and two notebook outputs.
+one terminal run and, optionally, one t7 plot.
 
 | Time | Visual | Narration |
 |---|---|---|
