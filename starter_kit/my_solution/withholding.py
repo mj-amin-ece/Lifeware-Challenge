@@ -5,11 +5,11 @@
   converted on the day it was received (and reduced by the shares already withdrawn), times the share now withdrawn.
 - CH: withholding tax (VST) on the whole payout in CHF.
 - IT: substitute tax (SOS) on the gain, each rate on the part accrued while it was valid (policy value at the changes).
-- DE: capital gains tax (KST) on the gain, only half of it (HEV) after 12 years and from the age of 60 (62 from 2012),
+- DE: capital gains tax (KST) on the whole gain (the half-income rule only applies in the tax return),
   reduced by church tax (base x rate / (1 + rate x church rate)); solidarity surcharge (SOL) and church tax (KIS) on the
   KST; German cents are cut off.
 """
-from payout_basis import HALF_INCOME, PayoutBasis
+from payout_basis import PayoutBasis
 from decimal import Decimal
 
 from rules import money
