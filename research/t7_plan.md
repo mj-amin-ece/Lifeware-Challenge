@@ -81,6 +81,16 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## 06:55: m1 replaces c7 as main (only untested ideas)
+
+Rule from the team: test only ideas never scored; drop tested ideas that did not improve the score. m1 = the user's
+version (no Italian pro rata, no church-tax formula, premiums rounded by their own era: all scored without effect),
+the Swiss split that holds the correct row (257 Swiss taxed rows identical to run 67), and four new ideas: Italian
+taxed dates and collected-duty dates on the end of the next month (153 + 182 rows), movers with only Italian duty
+reported as IT (8 rows), and the stamp duty at a surrender on the units' value (31 annual rows). Payout: everything
+but the Swiss hit was wrong, so the count minus 1 = new hits. Annual vs 11 reads the stamp-duty basis. The c7 probe
+is postponed.
+
 ## 06:05: c6 scored payout 1/40, annual 11/30 (77.01 %, best); c7 is main
 
 The hit came back (it sits in group 0 under "end of the next month" or group 3 under "quarter end + 30"); the rows
