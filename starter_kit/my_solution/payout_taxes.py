@@ -13,7 +13,7 @@ from decimal import Decimal
 
 from rules import money
 from stamp_duty import stamp_duty
-from tax_rules import end_of_next_month, remittance_date, swiss_remittance_split
+from tax_rules import end_of_next_month, remittance_date
 from withholding import Withholding
 
 
@@ -46,7 +46,7 @@ class TaxModule(Withholding):
             for tax, amount in amounts.items():
                 yearly[(day.year, tax)] += amount
             if withheld + surcharges > 0:  # M1 tests: Swiss split kept (holds the correct row); Italy end of next month
-                remitted = {'CH': swiss_remittance_split(policy, day), 'IT': end_of_next_month(day)}.get(
+                remitted = {'CH': end_of_next_month(day), 'IT': end_of_next_month(day)}.get(  # M2: every Swiss row on month end
                     country, remittance_date(country, day))
             else:  # M1 test: a collected Italian duty is remitted at the end of the next month
                 remitted = end_of_next_month(day) if stamp > 0 else None
