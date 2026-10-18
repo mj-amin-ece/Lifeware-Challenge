@@ -81,6 +81,14 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## 04:25: c3 scored payout 1/40, annual 9/30 (average 76.06 %), c4 is main
+
+Derived from the average (t0-t4 unchanged): t7 payout + annual = 32.5 pp = 1/40 + 9/30. First correct payout row on
+sample 2, from one of: the four Swiss date groups or the restored date of collected Italian duty. The first-year
+pro rata cost 2 annual rows: reverted. c4 keeps the Italian duty date and gives the two most plausible Swiss rules
+half of the Swiss rows each (groups 0-1: day paid + 30 days; 2-3: payout + 30 days); end of next month and quarter
+end are dropped. Reading: payout >= 2 names one of the two halves; payout 0 means the hit came from a dropped rule.
+
 ## 03:05: what the simple model taught, and the 03:51 upload (c3, = main)
 
 s-simple scored payout 0/40, annual 8/30 (main: 11/30). The four refinements added between e7-payday and main left the
