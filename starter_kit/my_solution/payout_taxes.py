@@ -48,15 +48,24 @@ class TaxModule(Withholding):
                 collected += stamp
             for tax, amount in amounts.items():
                 yearly[(day.year, tax)] += amount
-            if country == 'CH' and not withheld:  # M3 test: the Swiss tax reported instead of withheld
-                yearly[(day.year, 'REPORTED')] += self.reported_tax(policy, payout, address)
+            reported = self.reported_tax(policy, payout, address) if country == 'CH' and not withheld else 0
+            if reported:  # the Swiss tax reported instead of withheld counts as Swiss tax (m3: annual +1)
+                yearly[(day.year, 'REPORTED')] += reported
+            elif country == 'CH' and not withheld and address.AD_TAXST != 'E':  # M4 test: also below the threshold
+                yearly[(day.year, 'SMALL')] += self.reported_tax(policy, payout, address, threshold=False)
             if withheld + surcharges > 0:  # M2: every Swiss row on month end; Italy the 16th, Germany the 10th
                 remitted = end_of_next_month(day) if country == 'CH' else remittance_date(
                     'DE' if country == 'IT' and day < self.conversion else country, day)  # M3 test: COBOL Italy on the 10th
             else:  # M1 test: a collected Italian duty is remitted at the end of the next month
                 remitted = end_of_next_month(day) if stamp > 0 else None
+            if country == 'IT' and remitted and (remitted.month, remitted.day) == (8, 16) and remitted.year >= 2012:
+                remitted = remitted.replace(day=20)  # M4 test: Italian payments due in August may wait until the 20th
             if remitted and country in ('IT', 'DE'):  # M3 test: a deadline on a closed day moves to the next business day
                 remitted = calendar(self.data).next_business_day(remitted)
             rows[event] = (country, base, withheld, surcharges, stamp, remitted)
+            if reported and self.amount_paid(policy, payout) >= payout[3]:  # M4 test: reported tax on the payout row too,
+                # without a remittance date (policy number modulo 4: 0-1) or on the Swiss date (2-3)
+                rows[event] = (country, self.convert(self.amount_paid(policy, payout), policy, country, day), reported,
+                               surcharges, stamp, None if int(policy[2:]) % 4 < 2 else end_of_next_month(day))
             withdrawals.append((day, share))
         return rows, yearly

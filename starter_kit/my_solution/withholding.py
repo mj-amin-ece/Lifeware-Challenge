@@ -57,11 +57,11 @@ class Withholding(PayoutBasis):
             return self.convert(paid, policy, country, day)
         return self.convert(sold, policy, country, day) if paid < sold else Decimal('0.00')
 
-    def reported_tax(self, policy, payout, address):
+    def reported_tax(self, policy, payout, address, threshold=True):
         """Swiss tax on a payout above the threshold of a holder who did not object: reported, not withheld."""
         _, day, known, _, _ = payout
-        rate, threshold = self.rates.rate('CH', 'VST', day, known)
+        rate, limit = self.rates.rate('CH', 'VST', day, known)
         amount = self.convert(self.amount_paid(policy, payout), policy, 'CH', day)
-        if address.AD_TAXST == 'E' or rate is None or amount <= threshold:
+        if address.AD_TAXST == 'E' or rate is None or (threshold and amount <= limit):
             return Decimal('0.00')
         return money(amount * rate, day < self.conversion)
