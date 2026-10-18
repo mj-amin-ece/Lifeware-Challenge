@@ -39,13 +39,16 @@ def stamp_duty(module, policy, payouts):
         elif (day.month, day.day) == (12, 31):
             value = module.convert(module.policy_value(policy, day), policy, 'IT', day)
             rate, _ = module.rates.rate('IT', 'BOL', day, row.TB_CHGTS)
-            booked_years[day] = (value, money(value * rate, day < module.conversion))
-            result.append((day, booked_years[day][1]))
+            # C3 test: the first year of a policy is charged pro rata from its start, as a payout year is to its payout
+            begin = module.policies[policy].PH_BEGDT.date()
+            share = Decimal((day - begin).days + 1) / 365 if begin.year == day.year else Decimal(1)
+            booked_years[day] = (value, share, money(value * rate * share, day < module.conversion))
+            result.append((day, booked_years[day][2]))
         else:
             correction = Decimal(0)
-            for year_end, (value, old) in booked_years.items():
+            for year_end, (value, share, old) in booked_years.items():
                 rate, _ = module.rates.rate('IT', 'BOL', year_end, row.TB_CHGTS)
-                new = money(value * rate, day < module.conversion)
-                booked_years[year_end], correction = (value, new), correction + new - old
+                new = money(value * rate * share, day < module.conversion)
+                booked_years[year_end], correction = (value, share, new), correction + new - old
             result.append((day, correction))
     return result

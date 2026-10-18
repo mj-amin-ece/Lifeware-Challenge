@@ -27,6 +27,22 @@ def tax_currency(country):
     return TAX_CURRENCY.get(country, 'EUR')
 
 
+def swiss_remittance_split(policy, day, paid):
+    """C3 test: four untested Swiss deadline rules, one per fixed group of policies (policy number modulo 4).
+    Parameters: policy (str): Policy number; day (datetime.date): Day of the payout; paid (datetime.date): Day paid.
+    Returns (datetime.date): Remittance date of the group's rule.
+    """
+    group = int(policy[2:]) % 4
+    if group == 0:  # the end of the next month
+        return day.replace(day=1) + relativedelta(months=2) - dt.timedelta(days=1)
+    if group == 1:  # 30 days after the day paid
+        return paid + dt.timedelta(days=30)
+    if group == 2:  # 30 days after the payout
+        return day + dt.timedelta(days=30)
+    quarter_end = dt.date(day.year, (day.month - 1) // 3 * 3 + 3, 1) + relativedelta(months=1) - dt.timedelta(days=1)
+    return quarter_end + dt.timedelta(days=30)  # 30 days after the end of the quarter
+
+
 def remittance_date(country, day):
     """Day a tax withheld on `day` was paid to the tax office.
     Parameters: country (str): Country whose tax office gets the money; day (datetime.date): Day of the payout.

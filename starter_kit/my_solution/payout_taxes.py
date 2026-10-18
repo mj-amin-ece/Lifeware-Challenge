@@ -15,7 +15,7 @@ from decimal import Decimal
 
 from rules import money
 from stamp_duty import stamp_duty
-from tax_rules import remittance_date
+from tax_rules import remittance_date, swiss_remittance_split
 from withholding import Withholding
 
 
@@ -44,7 +44,11 @@ class TaxModule(Withholding):
                 collected += stamp
             for tax, amount in amounts.items():
                 yearly[(day.year, tax)] += amount
-            remitted = remittance_date(country, day) if withheld + surcharges > 0 else None  # D1: from the event month
+            if withheld + surcharges > 0:
+                remitted = (swiss_remittance_split(policy, day, self.payment_day(policy, day)) if country == 'CH'
+                            else remittance_date(country, day))
+            else:  # C3: as the first scored versions, a collected Italian duty is remitted on the Italian date
+                remitted = remittance_date('IT', day) if stamp > 0 else None
             rows[event] = (country, base, withheld, surcharges, stamp, remitted)
             withdrawals.append((day, share))
         return rows, yearly
