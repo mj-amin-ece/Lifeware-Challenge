@@ -46,9 +46,9 @@ class TaxModule(Withholding):
                 yearly[(day.year, tax)] += amount
             if withheld + surcharges > 0:
                 remitted = (swiss_remittance_split(policy, day, self.payment_day(policy, day)) if country == 'CH'
-                            else remittance_date(country, day))
+                            else remittance_date(country, day, day < self.conversion))
             else:  # C3: as the first scored versions, a collected Italian duty is remitted on the Italian date
-                remitted = remittance_date('IT', day) if stamp > 0 else None
+                remitted = remittance_date('IT', day, day < self.conversion) if stamp > 0 else None
             rows[event] = (country, base, withheld, surcharges, stamp, remitted)
             withdrawals.append((day, share))
         return rows, yearly

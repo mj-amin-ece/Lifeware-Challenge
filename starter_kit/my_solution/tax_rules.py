@@ -39,12 +39,15 @@ def swiss_remittance_split(policy, day, paid):
     return quarter_end + dt.timedelta(days=30)  # C5: 30 days after the end of the quarter, for the other half
 
 
-def remittance_date(country, day):
+def remittance_date(country, day, cobol=False):
     """Day a tax withheld on `day` was paid to the tax office.
-    Parameters: country (str): Country whose tax office gets the money; day (datetime.date): Day of the payout.
+    Parameters: country (str): Country whose tax office gets the money; day (datetime.date): Day of the payout;
+        cobol (bool): True for a payout of the COBOL era (C6 test: its Italian payments on the 10th, like Germany).
     Returns (datetime.date): Remittance date.
     """
     next_month = day.replace(day=1) + relativedelta(months=1)
+    if cobol and country == 'IT':
+        return next_month.replace(day=10)
     if country in REMITTANCE_DAY:
         return next_month.replace(day=REMITTANCE_DAY[country])
     return next_month - dt.timedelta(days=1) + dt.timedelta(days=CH_REMITTANCE_DAYS)
