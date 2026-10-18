@@ -11,6 +11,7 @@ remittance date (None if nothing was withheld). Annual movements retain their in
 from collections import defaultdict
 from decimal import Decimal
 
+from business_calendar import calendar
 from rules import money
 from stamp_duty import stamp_duty
 from tax_rules import end_of_next_month, remittance_date
@@ -45,11 +46,14 @@ class TaxModule(Withholding):
                 collected += stamp
             for tax, amount in amounts.items():
                 yearly[(day.year, tax)] += amount
-            if withheld + surcharges > 0:  # M1 tests: Swiss split kept (holds the correct row); Italy end of next month
-                remitted = {'CH': end_of_next_month(day), 'IT': end_of_next_month(day)}.get(  # M2: every Swiss row on month end
-                    country, remittance_date(country, day))
+            if country == 'CH' and not withheld:  # M3 test: the Swiss tax reported instead of withheld
+                yearly[(day.year, 'REPORTED')] += self.reported_tax(policy, payout, address)
+            if withheld + surcharges > 0:  # M2: every Swiss row on month end; Italy the 16th, Germany the 10th
+                remitted = end_of_next_month(day) if country == 'CH' else remittance_date(country, day)
             else:  # M1 test: a collected Italian duty is remitted at the end of the next month
                 remitted = end_of_next_month(day) if stamp > 0 else None
+            if remitted and country in ('IT', 'DE'):  # M3 test: a deadline on a closed day moves to the next business day
+                remitted = calendar(self.data).next_business_day(remitted)
             rows[event] = (country, base, withheld, surcharges, stamp, remitted)
             withdrawals.append((day, share))
         return rows, yearly

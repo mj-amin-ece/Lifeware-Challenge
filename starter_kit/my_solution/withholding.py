@@ -47,3 +47,12 @@ class Withholding(PayoutBasis):
             if surcharge in booked and surcharge_rate is not None:
                 amounts[surcharge] = money(withheld * surcharge_rate, cobol)
         return base, withheld, sum(amounts.get(name, Decimal('0.00')) for name in ['SOL', 'KIS']), amounts
+
+    def reported_tax(self, policy, payout, address):
+        """Swiss tax on a payout above the threshold of a holder who did not object: reported, not withheld."""
+        _, day, known, _, _ = payout
+        rate, threshold = self.rates.rate('CH', 'VST', day, known)
+        amount = self.convert(self.amount_paid(policy, payout), policy, 'CH', day)
+        if address.AD_TAXST == 'E' or rate is None or amount <= threshold:
+            return Decimal('0.00')
+        return money(amount * rate, day < self.conversion)

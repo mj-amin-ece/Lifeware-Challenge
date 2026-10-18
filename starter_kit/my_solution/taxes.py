@@ -26,16 +26,24 @@ def tax_results(data):
     """
     module = TaxModule(data)
     payout_rows, yearly = {}, defaultdict(lambda: [Decimal('0.00')] * len(ANNUAL_TAXES))
+    reported = defaultdict(Decimal)
     all_payouts = module.payouts()
     for policy, payouts in all_payouts.items():
         rows, amounts = module.policy_taxes(policy, payouts)
         payout_rows.update({(policy, event): row for event, row in rows.items()})
         for (year, tax), amount in amounts.items():
-            yearly[(policy, year)][ANNUAL_TAXES.index(tax)] += amount
+            if tax == 'REPORTED':
+                reported[(policy, year)] += amount
+            else:
+                yearly[(policy, year)][ANNUAL_TAXES.index(tax)] += amount
     for policy in {row.TB_POLNR for row in module.bookings.itertuples() if row.TB_TAXTP == 'BOL'} - set(all_payouts):
         for day, amount in stamp_duty(module, policy, []):
             yearly[(policy, day.year)][ANNUAL_TAXES.index('BOL')] += amount
     for (policy, year), amount in premium_stamp_duty(module).items():
         yearly[(policy, year)][ANNUAL_TAXES.index('STP')] += amount
     annual = {key: tuple(values) for key, values in yearly.items() if any(values)}
+    # M3 test: a year with only reported Swiss tax gets a row; rows that already exist stay as they are
+    vst = ANNUAL_TAXES.index('VST')
+    annual.update({key: tuple(amount if i == vst else Decimal('0.00') for i in range(len(ANNUAL_TAXES)))
+                   for key, amount in reported.items() if amount and key not in annual})
     return payout_rows, annual
