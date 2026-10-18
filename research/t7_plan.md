@@ -81,6 +81,16 @@ the payment day, church-tax formula, Italian pro-rata rates, on top of E5. The m
   untaxed rows), the stamp-duty basis at a surrender with penalty (31), the day count of the Italian duty at a
   surrender (134 annual rows). Flip one per slot only if a count above 0 gives a baseline to compare with.
 
+## 10:40: m7, m8, m9 all scored 88.80 % (10/40, 29/30); m10 = m9 + empty-text dates (main)
+
+m8 (zero amounts of undated rows as text) and m9 (+ deadlines from the payment month) did not move the leaderboard:
+the 30 undated rows are not lost to a false-y filter, and no sample-2 date depends on the payment month. Row by row,
+the 2 credited undated rows differ from the 30 others only in being the rows m6 changed; nothing in event type, era,
+currency, status, moves or product separates them. m10 writes "no remittance date" as an empty text, the csv
+convention, which the official scorer reads exactly like None: free on the published samples (still 100 %), and the
+last representation the server could treat differently. Presentation plots: presentation/plots/t7_*.png
+(research/t7_plots.py), story in presentation/t7_story.md.
+
 ## 09:50: m6 scored payout 10/40, annual 29/30 (88.80 %); m7 = m6 + the Swiss law date (main)
 
 The leaderboard never left sample 2: for e8, s-simple, c3, c4 and m1 the leaderboard annual count equals the local
