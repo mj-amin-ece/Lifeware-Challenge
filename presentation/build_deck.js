@@ -245,30 +245,32 @@ async function main() {
   // 7 Results ------------------------------------------------------------------------------------------------------
   pres.addSection({ title: "Results" });
   s = pres.addSlide({ masterName: "Content", sectionTitle: "Results" });
-  s.addText("Every remaining miss is a manual correction", { placeholder: "title" });
-  const tasks = [["t0", "Commission", "99.996 %"], ["t1", "Due dates", "100 %"], ["t2", "Maturity value", "99.735 %"], ["t3", "Surrender value", "99.740 %"], ["t4", "Annual statement", "99.939 %"]];
+  s.addText("Results: 88.80 % on the public leaderboard", { placeholder: "title" });
+  s.addText("PUBLIC LEADERBOARD, EXACT ROWS", { x: 0.5, y: 1.1, w: 9.0, h: 0.3, fontSize: 11, bold: true, color: C.accent4, charSpacing: 1, margin: 0, isTextBox: true, objectName: "Leaderboard label" });
+  const tasks = [["t0", "Commission", "100 %"], ["t1", "Due dates", "100 %"], ["t2", "Maturity", "100 %"], ["t3", "Surrender", "99.93 %"],
+    ["t4", "Statement", "99.99 %"], ["t7", "Tax annual", "29 / 30"], ["t7", "Tax payout", "10 / 40"]];
   tasks.forEach(([id, name, score], i) => {
-    const x = 0.5 + i * 1.825;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.25, w: 1.7, h: 1.25, rectRadius: 0.08, fill: { color: C.background2 }, line: { color: C.background2 }, objectName: `Task card ${id}` });
-    s.addText(`${id}  ${name}`, { x: x + 0.12, y: 1.35, w: 1.5, h: 0.35, fontSize: 12, color: C.text2, margin: 0, isTextBox: true, objectName: `Task name ${id}` });
-    s.addText(score, { x: x + 0.12, y: 1.75, w: 1.5, h: 0.55, fontSize: 24, bold: true, fontFace: THEME.headFontFace, color: C.accent3, margin: 0, isTextBox: true, objectName: `Task score ${id}` });
+    const x = 0.5 + i * 1.29, t7 = id === "t7";
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.45, w: 1.19, h: 1.15, rectRadius: 0.08, fill: { color: t7 ? "FBE9E7" : C.background2 }, line: { color: t7 ? "FBE9E7" : C.background2 }, objectName: `Task card ${i + 1}` });
+    s.addText(`${id}  ${name}`, { x: x + 0.1, y: 1.55, w: 1.05, h: 0.35, fontSize: 11, color: C.text2, margin: 0, isTextBox: true, objectName: `Task name ${i + 1}` });
+    s.addText(score, { x: x + 0.1, y: 1.95, w: 1.05, h: 0.5, fontSize: 20, bold: true, fontFace: THEME.headFontFace, color: t7 ? C.accent1 : C.accent3, margin: 0, isTextBox: true, objectName: `Task score ${i + 1}` });
   });
   const callouts = [
-    ["5,024,847", "fund bookings recalculated from scratch: all exact except 3 changed by hand"],
-    ["55", "hand-edited values found automatically (t5): all 38 listed ones and 17 new"],
+    ["88.80 %", "average of the seven scores, up from 77.01 % before the t7 rules"],
+    ["11 → 29", "of 30 t7 annual rows after fitting one rule per mismatch"],
+    ["55", "hand-edited values found automatically (t5): all 38 listed and 17 new"],
   ];
   callouts.forEach(([value, label], i) => {
-    const x = 0.5 + i * 4.6;
-    s.addText(value, { x, y: 2.85, w: 4.4, h: 0.85, fontSize: 44, bold: true, fontFace: THEME.headFontFace, color: i === 1 ? C.accent1 : C.text1, margin: 0, isTextBox: true, objectName: `Callout value ${i + 1}` });
-    s.addText(label, { x, y: 3.7, w: 4.2, h: 0.65, fontSize: 15, color: C.text2, valign: "top", margin: 0, isTextBox: true, objectName: `Callout label ${i + 1}` });
+    const x = 0.5 + i * 3.05;
+    s.addText(value, { x, y: 2.85, w: 2.9, h: 0.8, fontSize: 38, bold: true, fontFace: THEME.headFontFace, color: i === 0 ? C.accent1 : C.text1, margin: 0, isTextBox: true, objectName: `Callout value ${i + 1}` });
+    s.addText(label, { x, y: 3.65, w: 2.8, h: 0.75, fontSize: 13, color: C.text2, valign: "top", margin: 0, isTextBox: true, objectName: `Callout label ${i + 1}` });
   });
-  s.addText("Train set, official scoring  ·  t0\u2013t5 run in 45 seconds  ·  maintainability index 68", { x: 0.5, y: 4.6, w: 9.0, h: 0.3, fontSize: 11, color: C.accent4, margin: 0, isTextBox: true, objectName: "Results caption" });
+  s.addText("3 of 7 tasks perfect  ·  every remaining t0–t4 miss is a manual correction  ·  5,024,847 fund bookings recalculated  ·  t0–t5 run in 45 s", { x: 0.5, y: 4.6, w: 9.0, h: 0.3, fontSize: 11, color: C.accent4, margin: 0, isTextBox: true, objectName: "Results caption" });
   s.addNotes(
-    "With these rules we reach between 99.7 and 100 percent on every task. " +
-    "For surrender values and statements we recalculate the whole fund accounting ourselves, more than five million bookings, " +
-    "and every one of them matches Neuron except three that were changed by hand. " +
-    "In fact, every remaining difference is a manual correction, and our outlier detection for task five finds them automatically: " +
-    "55 values, including all 38 from the official list and 17 that nobody had listed. Tasks zero to five run in about 45 seconds, with one small module per task."
+    "Here are our results on the public leaderboard: t0, t1 and t2 are perfect, t3 and t4 are at 99.93 and 99.99 percent, and every remaining difference there is a value someone changed by hand. " +
+    "Our outlier detection for task five finds them automatically: 55 values, all 38 from the official list and 17 that nobody had listed. " +
+    "On the surprise tax audit we reach 29 of 30 rows in the annual tax table and 10 of 40 payouts, which brings our average to 88.80 percent, up from 77 percent before. " +
+    "The next slides show how we found the tax rules."
   );
 
   // 8 t7: the method ------------------------------------------------------------------------------------------------
