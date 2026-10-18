@@ -13,7 +13,7 @@ from decimal import Decimal
 
 from business_calendar import calendar
 from rules import money
-from stamp_duty import stamp_duty
+from stamp_duty import DAY_COUNTS, stamp_duty
 from tax_rules import end_of_next_month, remittance_date
 from withholding import Withholding
 
@@ -30,6 +30,8 @@ class TaxModule(Withholding):
         accruals = stamp_duty(self, policy, payouts)
         for day, amount in accruals:
             yearly[(day.year, 'BOL')] += amount
+        # M4 test: the duty collected at a payout charges its last year by one of four day counts (policy number modulo 4)
+        collectable = stamp_duty(self, policy, payouts, list(DAY_COUNTS)[int(policy[2:]) % 4])
         collected = Decimal(0)
         for payout in payouts:
             event, day, known, _, share = payout
@@ -41,7 +43,7 @@ class TaxModule(Withholding):
             base, withheld, surcharges, amounts = self.withholding(policy, payout, withdrawals, country, address.AD_REGIO)
             stamp = Decimal('0.00')
             if 'BOC' in self.booked[(policy, event)]:
-                accrued = sum(amount for accrued_day, amount in accruals if accrued_day <= day) - collected
+                accrued = sum(amount for accrued_day, amount in collectable if accrued_day <= day) - collected
                 stamp = money(accrued * share, day < self.conversion)
                 collected += stamp
             for tax, amount in amounts.items():
